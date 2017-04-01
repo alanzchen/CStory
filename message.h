@@ -1,3 +1,10 @@
+//
+// Created by Karl ZHANG on 2017/4/1.
+//
+
+#ifndef MESSAGE_H
+#define MESSAGE_H
+
 #include <iostream>
 #include <iomanip>
 #include <time.h>
@@ -17,3 +24,5 @@ private:
     std::string content;
 
 };
+
+#endif // MESSAGE_H
