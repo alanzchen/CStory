@@ -1,13 +1,9 @@
 #include <iostream>
-#include<iomanip>
-#include <fstream>
-//#include "json.hpp"
-#include <vector>
-#include <algorithm>
-#include <map>
-#include <vector>
+#include <iomanip>
 #include <time.h>
 #include <string>
+#include "session_id"
+#include "Story.h"
 
 class message {
 
