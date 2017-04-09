@@ -3,6 +3,8 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include "json.hpp"
+#include "Session.h"
+#include "Story.h"
 #include <vector>
 #include <algorithm>
 #include <map>
@@ -19,55 +21,14 @@ typedef SimpleWeb::Client<SimpleWeb::HTTP> HttpClient;
 void default_resource_send(const HttpServer &server, const shared_ptr<HttpServer::Response> &response,
                            const shared_ptr<ifstream> &ifs);
 
-namespace session {
-    // This is the namespace for session
-    struct session {
-        string session_id;
-        string story_id;
-        map<std::string, std::string> status;
-        vector<string> messages;
-        map<std::string, std::string> choices;
-    };
 
-    void to_json(json& j, const session& s) {
-        // The following code works but for unknown reason, they are displayed as error in Clion.
-//        j = json{{"session_id", s.session_id},
-//                 {"story_id", s.story_id},
-//                 {"status", s.status},
-//                 {"messages", s.messages},
-//                 {"choices", s.choices}};
-        j = json{};
-        j["session_id"] = s.session_id;
-        j["story_id"] = s.story_id;
-        j["status"] = s.status;
-        j["messages"] = s.messages;
-        j["choices"] = s.choices;
-    }
-
-    void from_json(const json& j, session& s) {
-        s.session_id = j["session_id"].get<string>();
-        s.story_id = j["story_id"].get<string>();
-        map<std::string, std::string> status;
-        for (auto it = j["status"].begin(); it != j["status"].end(); ++it) {
-            status[it.key()] = it.value();
-        }
-        s.status = status;
-        s.messages = j["messages"].get<vector<string>>();
-        map<std::string, std::string> choices;
-        for (auto it = j["choices"].begin(); it != j["choices"].end(); ++it) {
-            choices[it.key()] = it.value();
-        }
-        s.choices = choices;
-    }
-};
-
-void save_sessions(shared_ptr<map<string, session::session>> &sessions) {
+void save_sessions(shared_ptr<map<string, Session>> &sessions) {
     ofstream session_file("sessions.json");
     if (session_file.is_open())
     {
         int count = 0;
         for (auto it = (*sessions).begin(); it != (*sessions).end(); ++it) {
-            json j = it->second;
+            json j = it->second.to_json();
             session_file << j.dump() << endl;
             ++count;
         }
@@ -78,8 +39,8 @@ void save_sessions(shared_ptr<map<string, session::session>> &sessions) {
     }
 };
 
-void load_sessions(shared_ptr<map<string, session::session>> &sessions) {
-    int count;
+void load_sessions(shared_ptr<map<string, Session>> &sessions) {
+    int count = 0;
     string line;
     ifstream session_file ("sessions.json");
     if (session_file.is_open())
@@ -87,8 +48,8 @@ void load_sessions(shared_ptr<map<string, session::session>> &sessions) {
         while (getline(session_file, line))
         {
             auto j = json::parse(line);
-            session::session s = j;
-            (*sessions)[s.session_id] = s;
+            Session s = j;
+            (*sessions)[s.get_id()] = s;
             ++count;
         }
         session_file.close();
@@ -103,8 +64,10 @@ int main() {
     HttpServer server;
     server.config.port=8080;
 
-    shared_ptr<map<string, session::session>> sessions;
-    sessions = std::make_shared<map<string, session::session>>();
+    shared_ptr<map<string, Session>> sessions;
+    sessions = std::make_shared<map<string, Session>>();
+    shared_ptr<map<string, Story>> stories;
+    stories = std::make_shared<map<string, Story>>();
 
     server.resource["^/test$"]["POST"]=[](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         //Retrieve string:
@@ -145,8 +108,10 @@ int main() {
                 // found session in session_map
                 // we can kindly ignore the "story_id" in the request now, since we already have it stored in sessions.
                 // all we care is what the player chose
+                Session current_session = search->second;
                 string next_scenario = j["choice"];
                 // TODO: should call the story parser with "next_scenario" to update the session.
+                current_session.handle_reply(next_scenario);
                 json session_json = (*sessions)[session_id];
                 content = session_json.dump();
             } else {
@@ -157,13 +122,11 @@ int main() {
                 map<string, string> choices = {{"not_poem", "没这样的诗吧。"},
                                                {"whos_this", "唔……是谁？"}};
                 // create new session in session_map
-                session::session new_session {session_id,
-                                              j["story_id"].get<string>(),
-                                              status,
-                                              messages,
-                                              choices};
+                Session new_session(session_id,
+                                    j["story_id"].get<string>(),
+                                    "start");
                 (*sessions)[session_id] = new_session;
-                content = "New session created with story id: " + (*sessions)[session_id].story_id;
+                content = "New session created with story id: " + (*sessions)[session_id].get_story_id();
             }
 
             *response << "HTTP/1.1 200 OK\r\n"
