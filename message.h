@@ -13,16 +13,18 @@
 #include "Story.h"
 
 class message {
-
-public:
-    std::tm timestamp;
-    std::string get_content();
-    std::string get_session_id();
-
+    
 private:
     std::string session_id;
     std::string content;
-
+    std::string url;
+    
+public:
+    Message(std::vector<std::string>, std::tm time, std::string url);
+    std::tm timestamp;
+    std::string get_content();
+    std::string get_session_id();
+    //std::bool operator<(time1, time2);
 };
 
 #endif // MESSAGE_H
