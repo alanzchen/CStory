@@ -27,11 +27,16 @@ public:
 
     std::string get_snr_id();
 
-    std::string get_status(std::string var);
+    std::string get_status(std::string var); // return "false" if the var doesn't exits
 
     int set_status(std::string key, std::string value);
 
-    int enqueue_msg(message m);
+    /*
+     * @ param content: the content of this message
+     * @ timestamp: time to send this msg, unit: second
+     * TODO: generage a Message object using the given parameters and target url
+     */
+    int generate_msg(std::string content, long timestamp);
 
     int handle_reply(std::string choice);
 

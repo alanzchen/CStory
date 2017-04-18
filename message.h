@@ -20,8 +20,12 @@ private:
     std::string url;
     
 public:
-    Message(std::string, std::tm time, std::string url);
-    std::tm timestamp;
+    /*
+     * TODO: just use "long timestamp = time(nullptr)" to get current timestamp
+     *
+     */
+    Message(std::string, long time, std::string url);
+    long timestamp;
     std::string get_content();
     std::string get_session_id();
     //std::bool operator<(time1, time2);
