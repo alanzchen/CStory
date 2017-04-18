@@ -9,10 +9,10 @@
 #include <iomanip>
 #include <time.h>
 #include <string>
-#include "session_id"
-#include "Story.h"
+#include "session.h"
+#include "story.h"
 
-class message {
+class Message {
     
 private:
     std::string session_id;
@@ -20,7 +20,7 @@ private:
     std::string url;
     
 public:
-    Message(std::vector<std::string>, std::tm time, std::string url);
+    Message(std::string, std::tm time, std::string url);
     std::tm timestamp;
     std::string get_content();
     std::string get_session_id();

@@ -3,8 +3,8 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include "json.hpp"
-#include "Session.h"
-#include "Story.h"
+#include "session.h"
+#include "story.h"
 #include <vector>
 #include <algorithm>
 #include <map>

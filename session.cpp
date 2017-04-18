@@ -2,7 +2,7 @@
 // Created by Alan Chen on 4/8/17.
 //
 
-#include "Session.h"
+#include "session.h"
 #include "json.hpp"
 
 using namespace std;

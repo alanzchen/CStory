@@ -25,11 +25,15 @@ public:
 
     std::string get_story_id();
 
+    std::string get_snr_id();
+
+    std::string get_status(std::string var);
+
+    int set_status(std::string key, std::string value);
+
     int enqueue_msg(message m);
 
     int handle_reply(std::string choice);
-
-    int set_status(std::string key, std::string value);
 
     nlohmann::json to_json();
 };

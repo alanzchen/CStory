@@ -8,7 +8,7 @@ find_package(Boost 1.53.0 COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
 include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 
 set(SOURCE_FILES main.cpp console_client.cpp)
-add_executable(CStory_Server main.cpp Session.cpp)
+add_executable(CStory_Server main.cpp session.cpp story.h story.cpp message.h)
 add_executable(Console_client console_client.cpp)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
