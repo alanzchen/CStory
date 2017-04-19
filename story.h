@@ -38,7 +38,9 @@ private:
 
     void handle_set(std::string trigger, Session session);
 
-    void handle_line(std::string msg, Session session);
+    void handle_delay(std::string line, Session session);
+
+    void handle_line(std::string line, Session session);
 
     void set_up_msg(Session session, long msg_time, std::string content);
 

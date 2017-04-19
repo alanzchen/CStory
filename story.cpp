@@ -3,17 +3,22 @@
 //
 
 #include "story.h"
+#include "message.h"
+#include "session.h"
 #include <string>
 #include <vector>
 #include <iostream>
-#include <regex>
+
 
 using namespace std;
 
 regex Story::snr_id_re = regex(":: .*");
-regex Story::trigger_re = regex("<<.*>>");
+regex Story::trigger_re = regex("<<set .*>>");
 regex Story::continue_re = regex("\\[\\[[\\S_]*]]");
 regex Story::end_snr = regex("\\[\\[.*\\|.*]]");
+regex Story::if_statement = regex("<<.*if .*>>");
+regex Story::else_statement = regex("<<else.*>>");
+regex Story::end_if = regex("<<endif>>");
 regex Story::one_option = regex("\\[\\[.*?\\]\\]");
 regex Story::delay = regex("\\[\\[delay .*\\]\\]");
 
@@ -72,8 +77,105 @@ vector<string> Story::split_line(std::string line) {
     return result;
 }
 
-int Story::process_session(Session session) {
-    string snr_id = session.
+int Story::process_session(Session session, string snr_id = "") {
+    if (snr_id == "") {
+        snr_id = session.get_snr_id();
+    }
+    vector<string> snr_content = scenarios[snr_id];
+    string line;
+    for (int i = 0; i < snr_content.size(); i++) {
+        line = snr_content[i];
+        if (regex_match(line, if_statement)) {
+            handle_if(i, snr_content, session);
+        } else {
+            handle_line(line, session);
+        }
+    }
     return 0;
+}
+
+void Story::handle_set(std::string trigger, Session session) {
+    string var_name = get_var_name(trigger);
+    string var_val = get_var_value(trigger);
+    session.set_status(var_name, var_val);
+}
+
+void Story::handle_line(std::string line, Session session) {
+    if (regex_match(line, trigger_re)) {
+        handle_set(line, session);
+    } else if (regex_match(line, delay)) {
+        handle_delay(line, session);
+    } else if (regex_match(line, continue_re)) {
+        process_session(session, line.substr(2, line.size() - 4));
+    } else {
+        set_up_msg(session, time(nullptr), line);
+    }
+}
+
+void Story::handle_if(int &i, std::vector<std::string> content, Session session) {
+    string var_name = get_var_name(content[i]);
+    string var_val = get_var_value(content[i]);
+
+    if (session.get_status(var_name) == var_val) {
+        while (!regex_match(content[i], else_statement) && i < content.size()) {
+            handle_line(content[i], session);
+            i++;
+        }
+    } else {
+
+        do {
+            i++;
+        } while (!regex_match(content[i], else_statement) && i < content.size());
+
+        if (regex_match(content[i], if_statement)) {
+            handle_if(i, content, session);
+        } else {
+            i++;
+            while (!regex_match(content[i], end_if) && i < content.size()) {
+                handle_line(content[i], session);
+            }
+        }
+    }
+}
+
+void Story::set_up_msg(Session session, long msg_time, std::string content) {
+    session.generate_msg(content, msg_time);
+}
+
+std::string Story::get_var_value(std::string line) {
+    int i = line.size() - 2;
+    do {
+        i--;
+    } while (line[i] != ' ');
+    return line.substr(i + 1, line.size() - i - 3);
+}
+
+std::string Story::get_var_name(std::string line) {
+    int start = -1;
+    for (int i = 0; i < line.size(); i++) {
+        if (line[i] == '$') {
+            start = i + 1;
+        }
+        if (start != -1 && line[i] == ' ') {
+            return line.substr(start, i - start);
+        }
+    }
+    return "";
+}
+
+void Story::handle_delay(std::string line, Session session) {
+    unsigned int pos = line.find('^');
+    int numerica = stoi(line.substr(8, pos - 9));
+    switch (line[pos-1]) {
+        case 'm':
+            numerica = numerica*60;
+            break;
+        case 'h':
+            numerica = numerica*3600;
+            break;
+        default:
+            break;
+    }
+    set_up_msg(session,time(nullptr) + numerica, line);
 }
 
