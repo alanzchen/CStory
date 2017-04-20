@@ -16,6 +16,13 @@
 #include "session.h"
 #include "story.h"
 
+using message_pair = std::pair<long timestamp, std::string session_id>;   //Might be some probblems with this.
+using msg_container = std::vector<message_pair>;
+
+std::priority_queue<message_pair,
+                    msg_container,
+                    decltype(timestamp)> queue(timestamp);   //Might be some probblems with this.
+
 class Message {
     
 private:
@@ -24,11 +31,7 @@ private:
     std::string url;
     
 public:
-    /*
-     * TODO: just use "long timestamp = time(nullptr)" to get current timestamp
-     *
-     */
-    Message(std::string message_, long time, std::string url);   //directly use string for temporary message storing.
+    Message(std::string message_, long time, std::string url_);   //directly use string for temporary message storing.
     long timestamp;
     std::string get_content();
     std::string get_session_id();
@@ -44,11 +47,9 @@ struct node
     int value;
 };
 
-std::priority_queue<message_pair,
-                    msg_container,
-                    decltype(time_comp)> queue(time_comp);
 
 #endif // MESSAGE_H
+
 
 /* Below is something not sure.
 
