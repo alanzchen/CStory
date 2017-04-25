@@ -13,45 +13,47 @@
 #include <algorithm>
 #include <map>
 #include <vector>
+#include <ctime>
 #include "session.h"
 #include "story.h"
 
-using message_pair = std::pair<long timestamp, std::string session_id>;   //Might be some probblems with this.
-using msg_container = std::vector<message_pair>;
-
-std::priority_queue<message_pair,
-                    msg_container,
-                    decltype(timestamp)> queue(timestamp);   //Might be some probblems with this.
-
 class Message {
-    
+
+public:
+    Message(std::string message_, long times, std::string url_, std::string sessionID); //directly use string for temporary message storing.
+    std::string get_content() const;
+    std::string get_session_id() const;
+    long get_time() const;
+
 private:
+    long timestamp;
     std::string session_id;
     std::string content;
     std::string url;
-    
-public:
-    Message(std::string message_, long time, std::string url_);   //directly use string for temporary message storing.
-    long timestamp;
-    std::string get_content();
-    std::string get_session_id();
+
 };
 
-struct node
+class MyCompare//定义比较方法，比较time, time小的在前面
 {
-    friend bool operator< (node n1, node n2)
-    {
-         return n1.priority < n2.priority;
-    }
-    int priority;
-    int value;
+
+public:
+    bool operator()(Message left, Message right) const;
+
 };
 
 
 #endif // MESSAGE_H
 
 
-/* Below is something not sure.
+/* Below is something not sure. Could be reference.
+
+using message_pair = std::pair<long timestamp, std::string session_id>;
+using msg_container = std::vector<message_pair>;
+
+std::priority_queue<message_pair,
+                    msg_container,
+                    decltype(timestamp)> queue(timestamp);
+
 
 bool time_comp = [](const message_pair& m1, const message_pair& m2);  //directly compare, no need this.
 
