@@ -77,9 +77,9 @@ vector<string> Story::split_line(std::string line) {
     return result;
 }
 
-int Story::process_session(Session session, string snr_id = "") {
+int Story::process_session(Session session, string snr_id) {
     if (snr_id == "") {
-        snr_id = session.get_snr_id();
+        snr_id = session.getScenario_id();
     }
     vector<string> snr_content = scenarios[snr_id];
     string line;
@@ -116,7 +116,7 @@ void Story::handle_if(int &i, std::vector<std::string> content, Session session)
     string var_name = get_var_name(content[i]);
     string var_val = get_var_value(content[i]);
 
-    if (session.get_status(var_name) == var_val) {
+    if (session.getStatus(var_name) == var_val) {
         while (!regex_match(content[i], else_statement) && i < content.size()) {
             handle_line(content[i], session);
             i++;

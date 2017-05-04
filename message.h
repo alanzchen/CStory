@@ -25,12 +25,13 @@ public:
     std::string get_session_id() const;
     long get_time() const;
 
+    const std::string &getUrl() const;
+
 private:
     long timestamp;
     std::string session_id;
     std::string content;
     std::string url;
-
 };
 
 class MyCompare//定义比较方法，比较time, time小的在前面
@@ -41,6 +42,12 @@ public:
 
 };
 
+struct CompareTimestamp {
+    bool operator()(Message const & p1, Message const & p2) {
+        // return "true" if "p1" is ordered before "p2", for example:
+        return p1.get_time() < p2.get_time();
+    }
+};
 
 #endif // MESSAGE_H
 

@@ -74,3 +74,7 @@ int main()
 
     return 0;
 }
+
+const string &Message::getUrl() const {
+    return url;
+}

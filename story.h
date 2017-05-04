@@ -1,6 +1,13 @@
 //
 // Created by Lucas Chen on 2017/4/1.
 //
+
+
+
+#ifndef CSTORY_T_STORY_H
+#define CSTORY_T_STORY_H
+
+#include "session.h"
 #include <tuple>
 #include <string>
 #include <vector>
@@ -9,10 +16,10 @@
 #include <regex>
 #include <fstream>
 #include <ctime>
-#include "session.h"
 
-#ifndef CSTORY_T_STORY_H
-#define CSTORY_T_STORY_H
+class Session;
+
+class Message;
 
 class Story {
 private:

@@ -2,6 +2,7 @@
 #include "client_http.hpp"
 #include <fstream>
 #include <boost/filesystem.hpp>
+#include <ctime>
 #include "json.hpp"
 #include "session.h"
 #include "story.h"
@@ -39,7 +40,10 @@ void save_sessions(shared_ptr<map<string, Session>> &sessions) {
     }
 };
 
-void load_sessions(shared_ptr<map<string, Session>> &sessions) {
+void load_sessions(shared_ptr<std::map<std::string, Session>> &sessions,
+                   shared_ptr<std::priority_queue<Message, std::vector<Message, std::allocator<Message>>, CompareTimestamp>> mq,
+                   shared_ptr<std::map<std::string, Story>> story_pool)
+{
     int count = 0;
     string line;
     ifstream session_file ("sessions.json");
@@ -49,12 +53,25 @@ void load_sessions(shared_ptr<map<string, Session>> &sessions) {
         {
             auto j = json::parse(line);
             Session s = j;
-            (*sessions)[s.get_id()] = s;
+            s.setMq(mq);
+            s.setStory_pool(story_pool);
+            (*sessions)[s.getSession_id()] = s;
             ++count;
         }
         session_file.close();
         cout << "Saved " << count << " sessions." << endl;
     }
+}
+
+void sendMessage(Message msg) {
+    HttpClient client(msg.getUrl());
+    json j;
+    j["session_id"] = msg.get_session_id();
+    j["content"] = msg.get_content();
+    string json_string= j.dump();
+    auto response=client.request("POST", "/json", json_string); // The endpoint should always ends with /json
+    cout << "Message sent with the following reply:" << endl;
+    cout << response->content.rdbuf() << endl;
 }
 
 int main() {
@@ -64,39 +81,50 @@ int main() {
     HttpServer server;
     server.config.port=8080;
 
+    // Sessions Pool
     shared_ptr<map<string, Session>> sessions;
     sessions = std::make_shared<map<string, Session>>();
+
+    // Stories Pool
+    // TODO: Load all the stories and add them to this map
     shared_ptr<map<string, Story>> stories;
     stories = std::make_shared<map<string, Story>>();
 
-    server.resource["^/test$"]["POST"]=[](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
+    Story * test_story = new Story("silent_night", "stories/silent_night.story");
+    (*stories)["silent_night"] = *test_story;
+
+    // Message Queue (mq)
+    shared_ptr<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>> mq;
+    mq = std::make_shared<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>>();
+
+    // For testing purpose, this endpoint echoes the incoming message.
+    server.resource["^/ping$"]["POST"]=[](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         //Retrieve string:
         auto content=request->content.string();
-        //request->content.string() is a convenience function for:
-        //stringstream ss;
-        //ss << request->content.rdbuf();
-        //string content=ss.str();
 
         *response << "HTTP/1.1 200 OK\r\nContent-Length: " << content.length() << "\r\n\r\n"
                   << content;
     };
 
 
-    server.resource["^/debug$"]["POST"]=[&sessions](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
+    server.resource["^/debug$"]["POST"]=[&sessions, &mq, &stories]
+            (shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         //Retrieve string:
         auto content=request->content.string();
         if (content == "save") {
             save_sessions(sessions);
         } else if (content == "load") {
-            load_sessions(sessions);
+            load_sessions(sessions, mq, stories);
+        } else if (content == "shutdown") {
+            Message shutdown("shutdown", 0, "", "");
         }
-
         *response << "HTTP/1.1 200 OK\r\nContent-Length: " << content.length() << "\r\n\r\n"
                   << content;
     };
 
-    // main api endpoint
-    server.resource["^/json$"]["POST"]=[&sessions](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
+    // Main API Endpoint
+    server.resource["^/json$"]["POST"]=[&sessions]
+            (shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         try {
             auto j = json::parse(request->content);
             string content;
@@ -106,27 +134,19 @@ int main() {
 
             if(search != (*sessions).end()) {
                 // found session in session_map
-                // we can kindly ignore the "story_id" in the request now, since we already have it stored in sessions.
                 // all we care is what the player chose
                 Session current_session = search->second;
                 string next_scenario = j["choice"];
                 // TODO: should call the story parser with "next_scenario" to update the session.
                 current_session.handle_reply(next_scenario);
-                json session_json = (*sessions)[session_id];
+                (*stories)[current_session.getStory_id()].process_session(current_session);
+                json session_json = current_session;
+                session_json["message"] = "please wait for us to callback";
                 content = session_json.dump();
             } else {
                 // initiate a story, will ignore all other params from the request
                 // TODO: Initiate the story from the story parser. The default scenario is "start".
-                vector<string> messages = {"Hey!", "Can you hear me?"};
-                map<string, string> status = {{"visited", "false"}};
-                map<string, string> choices = {{"not_poem", "没这样的诗吧。"},
-                                               {"whos_this", "唔……是谁？"}};
-                // create new session in session_map
-                Session new_session(session_id,
-                                    j["story_id"].get<string>(),
-                                    "start");
-                (*sessions)[session_id] = new_session;
-                content = "New session created with story id: " + (*sessions)[session_id].get_story_id();
+                throw std::runtime_error("Invalid session_id: session_id not found on the server.");
             }
 
             *response << "HTTP/1.1 200 OK\r\n"
@@ -138,6 +158,61 @@ int main() {
             *response << "HTTP/1.1 400 Bad Request\r\nContent-Length: " << strlen(e.what()) << "\r\n\r\n" << e.what();
         }
     };
+
+    // API Endpoint for starting a story session
+    server.resource["^/start$"]["POST"]=[&sessions, &stories, &mq]
+            (shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
+        try {
+            auto j = json::parse(request->content);
+            string content;
+
+            // Here are the information needed to start a session
+            string callback = j["callback"].get<string>();
+            string story_id = j["story_id"].get<string>();
+            string session_id;
+
+            // Use current timestamp as the session id
+            std::time_t current_ts = std::time(nullptr);
+            stringstream tmp;
+            tmp << current_ts;
+            session_id = tmp.str();
+
+            // Finding the story_id in the story pool
+            auto search = (*stories).find(story_id);
+            if (search != (*stories).end()) {
+                // found story in story pool
+                Story story = search->second;
+                // TODO: should call the story parser with "next_scenario" to update the session.
+                json session_json = (*sessions)[session_id];
+                content = session_json.dump();
+                // create new session in session_map
+                Session * new_session = new Session(session_id,
+                                                    story_id,
+                                                    "start", // Story always starts with "start".
+                                                    callback,
+                                                    mq,
+                                                    stories);
+                (*sessions)[session_id] = *new_session;
+
+                // Now process the first story session.
+                story.process_session(*new_session);
+
+                cout << "New session created with story id: " + (*sessions)[session_id].getStory_id() << endl;
+            } else {
+                // invalid story_id, return an error message
+                throw std::runtime_error("Invalid story_id.");
+            }
+
+            *response << "HTTP/1.1 200 OK\r\n"
+                      << "Content-Type: application/json\r\n"
+                      << "Content-Length: " << content.length() << "\r\n\r\n"
+                      << content;
+        }
+        catch(exception& e) {
+            *response << "HTTP/1.1 400 Bad Request\r\nContent-Length: " << strlen(e.what()) << "\r\n\r\n" << e.what();
+        }
+    };
+
 
     //GET-example for the path /info
     //Responds with request-information
@@ -216,22 +291,30 @@ int main() {
     });
 
     //Wait for server to start so that the client can connect
-    this_thread::sleep_for(chrono::seconds(1));
+//    this_thread::sleep_for(chrono::seconds(1));
 
-    //Client examples
-    HttpClient client("localhost:8080");
-//    auto r1=client.request("GET", "/match/123");
-//    cout << r1->content.rdbuf() << endl;
-//
-//    string json_string="{\"firstName\": \"John\",\"lastName\": \"Smith\",\"age\": 25}";
-//    auto r2=client.request("POST", "/string", json_string);
-//    cout << r2->content.rdbuf() << endl;
-//
-//    auto r3=client.request("POST", "/json", json_string);
-//    cout << r3->content.rdbuf() << endl;
+    // Loop for the MQ
+    while(true) {
+        if (!(*mq).empty()) {
+            std::time_t current_ts = std::time(nullptr);
+            if ((*mq).top().get_time() <= current_ts) {
+                // If receives the debug instruction to shutdown
+                if ((*mq).top().get_content() == "shutdown") {
+                    cout << "Received shutdown message, shutting down." << endl;
+                    save_sessions(sessions);
+                    break;
+                }
+                // Send the message and pop the first
+                sendMessage((*mq).top());
+            } else {
+                sleep(1);
+            }
+        } else {
+            sleep(1);
+        }
+    }
 
     server_thread.join();
-
     return 0;
 }
 
