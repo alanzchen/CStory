@@ -4,14 +4,14 @@
 
 #include "session.h"
 #include "json.hpp"
+#include "story.h"
 
 using namespace std;
 using namespace nlohmann;
 
-
 Session::Session(std::string session_id_, std::string story_id_, std::string scenario_id_, std::string callback_,
                  std::shared_ptr<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>> mq_,
-                 std::shared_ptr<std::map<std::string, Story>> story_pool_) {
+                 std::shared_ptr<std::map<std::string, Story*>> story_pool_) {
     session_id = session_id_;
     story_id = story_id_;
     scenario_id = scenario_id_;
@@ -52,9 +52,8 @@ int Session::handle_reply(std::string choice) {
     // 1. Call the story, feed it with current status and the scenario to goto.
     // 2. Get the messages to send.
     // 3. Send the messages.
-    Story story = (*story_pool)[story_id];
     scenario_id = choice;
-    story.process_session(*this);
+    (*story_pool)[story_id]->process_session(*this);
     return 0;
 }
 
@@ -79,7 +78,7 @@ const map<string, string> &Session::getStatus() const {
 const std::string &Session::getStatus(std::string var) const {
     std::string val = "false";
     try {
-        val =  status[var];
+        val = status.at(var);
     } catch (exception e) {
         cout << "Error when getting a a value in the status dictionary." << e.what() << endl;
     }
@@ -110,6 +109,6 @@ Session::setMq(const shared_ptr<priority_queue<Message, vector<Message, allocato
     Session::mq = mq;
 }
 
-void Session::setStory_pool(const shared_ptr<map<string, Story>> &story_pool) {
+void Session::setStory_pool(const shared_ptr<map<string, Story *>> &story_pool) {
     Session::story_pool = story_pool;
 }

@@ -16,6 +16,8 @@ class Story;
 
 class Message;
 
+struct CompareTimestamp;
+
 class Session {
 
 private:
@@ -26,20 +28,18 @@ private:
     std::string scenario_id;
     std::string callback;
     std::shared_ptr<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>> mq;
-    std::shared_ptr<std::map<std::string, Story>> story_pool;
+    std::shared_ptr<std::map<std::string, Story*>> story_pool;
 
 public:
 
     Session(std::string session_id, std::string story_id, std::string scenario_id, std::string callback,
             std::shared_ptr<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>> mq,
-            std::shared_ptr<std::map<std::string, Story>> story);
+            std::shared_ptr<std::map<std::string, Story*>> story);
 
     Session(nlohmann::json json);
 
     void
     setMq(const std::shared_ptr<std::priority_queue<Message, std::vector<Message, std::allocator<Message>>, CompareTimestamp>> &mq);
-
-    void setStory_pool(const std::shared_ptr<std::map<std::string, Story>> &story_pool);
 
     const std::string &getSession_id() const;
 
@@ -52,6 +52,8 @@ public:
     const std::string &getStatus(std::string var) const; // return "false" if the var doesn't exits
 
     int set_status(std::string key, std::string value);
+
+    void setStory_pool(const std::shared_ptr<std::map<std::string, Story *>> &story_pool);
 
     /*
      * @ param content: the content of this message

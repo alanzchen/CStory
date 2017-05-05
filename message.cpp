@@ -36,7 +36,7 @@ bool MyCompare::operator()(Message left, Message right) const
  */
 
 
-int main()
+int test()
 {
     priority_queue<Message,vector<Message>,MyCompare> pqueue;
     

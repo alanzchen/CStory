@@ -4,8 +4,9 @@
 #include <boost/filesystem.hpp>
 #include <ctime>
 #include "json.hpp"
-#include "session.h"
 #include "story.h"
+#include "message.h"
+#include "session.h"
 #include <vector>
 #include <algorithm>
 #include <map>
@@ -42,7 +43,7 @@ void save_sessions(shared_ptr<map<string, Session>> &sessions) {
 
 void load_sessions(shared_ptr<std::map<std::string, Session>> &sessions,
                    shared_ptr<std::priority_queue<Message, std::vector<Message, std::allocator<Message>>, CompareTimestamp>> mq,
-                   shared_ptr<std::map<std::string, Story>> story_pool)
+                   shared_ptr<std::map<std::string, Story*>> story_pool)
 {
     int count = 0;
     string line;
@@ -52,10 +53,10 @@ void load_sessions(shared_ptr<std::map<std::string, Session>> &sessions,
         while (getline(session_file, line))
         {
             auto j = json::parse(line);
-            Session s = j;
+            Session s = Session(j);
             s.setMq(mq);
             s.setStory_pool(story_pool);
-            (*sessions)[s.getSession_id()] = s;
+            (*sessions).at(s.getSession_id()) = s;
             ++count;
         }
         session_file.close();
@@ -87,11 +88,9 @@ int main() {
 
     // Stories Pool
     // TODO: Load all the stories and add them to this map
-    shared_ptr<map<string, Story>> stories;
-    stories = std::make_shared<map<string, Story>>();
-
-    Story * test_story = new Story("silent_night", "stories/silent_night.story");
-    (*stories)["silent_night"] = *test_story;
+    shared_ptr<map<string, Story*>> stories;
+    stories = std::make_shared<map<string, Story*>>();
+    (*stories)["silent_night"] = new Story("silent_night", "stories/silent_night.story");
 
     // Message Queue (mq)
     shared_ptr<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>> mq;
@@ -123,7 +122,7 @@ int main() {
     };
 
     // Main API Endpoint
-    server.resource["^/json$"]["POST"]=[&sessions]
+    server.resource["^/json$"]["POST"]=[&sessions, &stories]
             (shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         try {
             auto j = json::parse(request->content);
@@ -137,10 +136,10 @@ int main() {
                 // all we care is what the player chose
                 Session current_session = search->second;
                 string next_scenario = j["choice"];
-                // TODO: should call the story parser with "next_scenario" to update the session.
+                // Let the session to handle the reply
                 current_session.handle_reply(next_scenario);
-                (*stories)[current_session.getStory_id()].process_session(current_session);
-                json session_json = current_session;
+                (*stories)[current_session.getStory_id()]->process_session(current_session);
+                json session_json = current_session.to_json();
                 session_json["message"] = "please wait for us to callback";
                 content = session_json.dump();
             } else {
@@ -181,10 +180,6 @@ int main() {
             auto search = (*stories).find(story_id);
             if (search != (*stories).end()) {
                 // found story in story pool
-                Story story = search->second;
-                // TODO: should call the story parser with "next_scenario" to update the session.
-                json session_json = (*sessions)[session_id];
-                content = session_json.dump();
                 // create new session in session_map
                 Session * new_session = new Session(session_id,
                                                     story_id,
@@ -192,12 +187,11 @@ int main() {
                                                     callback,
                                                     mq,
                                                     stories);
-                (*sessions)[session_id] = *new_session;
+                (*sessions).at(session_id) = *new_session;
 
                 // Now process the first story session.
-                story.process_session(*new_session);
-
-                cout << "New session created with story id: " + (*sessions)[session_id].getStory_id() << endl;
+                (*search->second).process_session(*new_session);
+                cout << "New session created with story id: " + (*sessions).at(session_id).getStory_id() << endl;
             } else {
                 // invalid story_id, return an error message
                 throw std::runtime_error("Invalid story_id.");
