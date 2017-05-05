@@ -78,6 +78,7 @@ vector<string> Story::split_line(std::string line) {
 }
 
 int Story::process_session(Session session, string snr_id) {
+    cout << "Story " << (*this).story_id << ": processing session " << session.getSession_id() << endl;
     if (snr_id == "") {
         snr_id = session.getScenario_id();
     }

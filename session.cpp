@@ -101,6 +101,7 @@ int Session::generate_msg(std::string content, long timestamp) {
     } catch (exception e) {
         cout << "Error when getting a a value in the status dictionary." << e.what() << endl;
     }
+    cout << "Session " << (*this).getSession_id() << ": added a message to MQ: " << content << endl;
     return 0;
 }
 

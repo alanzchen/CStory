@@ -56,7 +56,7 @@ void load_sessions(shared_ptr<std::map<std::string, Session>> &sessions,
             Session s = Session(j);
             s.setMq(mq);
             s.setStory_pool(story_pool);
-            (*sessions).at(s.getSession_id()) = s;
+            (*sessions).insert(make_pair(s.getSession_id(), s));
             ++count;
         }
         session_file.close();
@@ -187,7 +187,7 @@ int main() {
                                                     callback,
                                                     mq,
                                                     stories);
-                (*sessions).at(session_id) = *new_session;
+                (*sessions).insert(make_pair(session_id, *new_session));
 
                 // Now process the first story session.
                 (*search->second).process_session(*new_session);
