@@ -188,7 +188,8 @@ int main() {
                                                     mq,
                                                     stories);
                 (*sessions).insert(make_pair(session_id, *new_session));
-
+                json j = (*new_session).to_json();
+                content = j.dump();
                 // Now process the first story session.
                 (*search->second).process_session(*new_session);
                 cout << "New session created with story id: " + (*sessions).at(session_id).getStory_id() << endl;
