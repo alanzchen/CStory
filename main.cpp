@@ -64,17 +64,6 @@ void load_sessions(shared_ptr<std::map<std::string, Session>> &sessions,
     }
 }
 
-void sendMessage(Message msg) {
-    HttpClient client(msg.getUrl());
-    json j;
-    j["session_id"] = msg.get_session_id();
-    j["content"] = msg.get_content();
-    string json_string= j.dump();
-    auto response=client.request("POST", "/json", json_string); // The endpoint should always ends with /json
-    cout << "Message sent with the following reply:" << endl;
-    cout << response->content.rdbuf() << endl;
-}
-
 int main() {
     //HTTP-server at port 8080 using 1 thread
     //Unless you do more heavy non-threaded processing in the resources,
@@ -289,6 +278,7 @@ int main() {
 //    this_thread::sleep_for(chrono::seconds(1));
 
     // Loop for the MQ
+    string current_session_id;
     while(true) {
         if (!(*mq).empty()) {
             std::time_t current_ts = std::time(nullptr);
@@ -300,7 +290,9 @@ int main() {
                     break;
                 }
                 // Send the message and pop the first
-                sendMessage((*mq).top());
+                current_session_id = (*mq).top().get_session_id();
+                Session *current_session = & (*sessions).at(current_session_id);
+                (*current_session).sendMessage((*mq).top());
             } else {
                 sleep(1);
             }

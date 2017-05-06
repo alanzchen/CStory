@@ -4,6 +4,7 @@
 
 #include "client_http.hpp"
 #include "server_http.hpp"
+#include <mutex>
 
 //Added for the default_resource example
 
@@ -21,48 +22,6 @@ using json = nlohmann::json;
 typedef SimpleWeb::Client<SimpleWeb::HTTP> HttpClient;
 typedef SimpleWeb::Server<SimpleWeb::HTTP> HttpServer;
 
-namespace session {
-    // TODO: merge this into a common .h file
-    // This is the namespace for session
-    struct session {
-        string session_id;
-        string story_id;
-        map<std::string, std::string> status;
-        vector<string> messages;
-        map<std::string, std::string> choices;
-    };
-
-    void to_json(json& j, const session& s) {
-        // The following code works but for unknown reason, they are displayed as error in Clion.
-//        j = json{{"session_id", s.session_id},
-//                 {"story_id", s.story_id},
-//                 {"status", s.status},
-//                 {"messages", s.messages},
-//                 {"choices", s.choices}};
-        j = json{};
-        j["session_id"] = s.session_id;
-        j["story_id"] = s.story_id;
-        j["status"] = s.status;
-        j["messages"] = s.messages;
-        j["choices"] = s.choices;
-    }
-
-    void from_json(const json& j, session& s) {
-        s.session_id = j["session_id"].get<string>();
-        s.story_id = j["story_id"].get<string>();
-        map<std::string, std::string> status;
-        for (auto it = j["status"].begin(); it != j["status"].end(); ++it) {
-            status[it.key()] = it.value();
-        }
-        s.status = status;
-        s.messages = j["messages"].get<vector<string>>();
-        map<std::string, std::string> choices;
-        for (auto it = j["choices"].begin(); it != j["choices"].end(); ++it) {
-            choices[it.key()] = it.value();
-        }
-        s.choices = choices;
-    }
-};
 
 string request(HttpClient & client, string path, string payload) {
     auto response = client.request("POST", path, payload);
@@ -78,6 +37,21 @@ void pprint(string msg) {
 
 void pprint(string people, string msg) {
     cout << people << " > " << msg << endl;
+};
+
+string init_session(string story_id, string callback, HttpClient & connection) {
+    json j;
+    j["story_id"] = story_id;
+    j["callback"] = callback;
+    string response = request(connection, "start", j.dump());
+    json r(response);
+    if (r["scenario"] == "start") {
+        return r["session_id"];
+    } else {
+        pprint("CStory", "Invalid response from the server:");
+        cout << response << endl;
+        return "failed";
+    }
 };
 
 string choose(map<string, string> choices) {
@@ -110,45 +84,67 @@ string choose(map<string, string> choices) {
     // TODO: Send the request to the server
 };
 
-void handle_response(json response) {
-    // TODO: handle the response
-    session::session current_state = response;
-
-    choose(current_state.choices);
-};
-
 int main() {
-    cout << "Welcome to CStory Engine Demo Console Client." << endl;
-    HttpClient client("localhost:8080");
+    pprint("CStory", "Welcome to CStory Engine Demo Console Client.");
+    pprint("CStory", "Which server do you want to connect? Default is localhost:8080");
+    string game_server;
+    cout << "Server: ";
+    getline(cin, game_server);
+    if (game_server.size() == 0) {
+        game_server = "localhost:8080";
+    }
+    HttpClient connection(game_server);
 
     // start the client server so that the server can call
     HttpServer server;
     server.config.port=8081;
+
+    string session_id;
+    string scenario_id = "start";
+
+    pprint("CStory", "What story do you want to play? If you are not sure, default is silent_night.");
+    string story_id = "silent_night";
+    getline(cin, story_id);
+
+    server.resource["^/json$"]["POST"]=[&session_id, &scenario_id]
+            (shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
+        try {
+            auto j = json::parse(request->content);
+            string content;
+            if (j["session_id"] == session_id) {
+                pprint(content);
+
+            }
+            *response << "HTTP/1.1 200 OK\r\n"
+                      << "Content-Type: application/json\r\n"
+                      << "Content-Length: " << content.length() << "\r\n\r\n"
+                      << content;
+        }
+        catch(exception& e) {
+            json j;
+            j["session_id"] = session_id;
+            j["error"] = e.what();
+            string err = j.dump();
+            *response << "HTTP/1.1 400 Bad Request\r\n"
+                      << "Content-Type: application/json\r\n"
+                      << "Content-Length: " << err.size() << "\r\n\r\n" << err;
+        }
+    };
+
     thread server_thread([&server](){
         //Start server
         server.start();
     });
 
-    // examples
-    string json_string="{\"firstName\": \"John\",\"lastName\": \"Smith\",\"age\": 25}";
-    auto r3=client.request("POST", "/test", json_string);
-    cout << r3->content.rdbuf() << endl;
-    cout << request(client, "/test", json_string);
-
-    string scenario_id = "Start";
-    json response;
+    // request for a session
+    session_id = init_session(story_id, "localhost:8081", connection);
+    if (session_id == "failed") {
+        pprint("CStory", "Fatal error: cannot establish connection with the server.");
+        return 1;
+    }
 
     while (true) {
-        // if the scenario_id has changed, it means the client server received a delayed message
-        if (response["scenario_id"] != scenario_id) {
-            handle_response(response);
-            if (response["scenario_id"] == "end") { // this will end the story after handling the last response.
-                break;
-            };
-        } else {
-            // sleep for 1 second to avoid performance issue
-            this_thread::sleep_for(chrono::seconds(1));
-        };
+        // TODO: Main loop
     };
     cout << "Connection closed." << endl;
     return 0;

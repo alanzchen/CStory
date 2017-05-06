@@ -5,9 +5,11 @@
 #include "session.h"
 #include "json.hpp"
 #include "story.h"
+#include "client_http.hpp"
 
 using namespace std;
 using namespace nlohmann;
+typedef SimpleWeb::Client<SimpleWeb::HTTP> HttpClient;
 
 Session::Session(std::string session_id_, std::string story_id_, std::string scenario_id_, std::string callback_,
                  std::shared_ptr<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>> mq_,
@@ -100,6 +102,7 @@ int Session::generate_msg(std::string content, long timestamp) {
         (*mq).push(msg);
     } catch (exception e) {
         cout << "Error when getting a a value in the status dictionary." << e.what() << endl;
+        return 1;
     }
     cout << "Session " << (*this).getSession_id() << ": added a message to MQ: " << content << endl;
     return 0;
@@ -112,4 +115,28 @@ Session::setMq(const shared_ptr<priority_queue<Message, vector<Message, allocato
 
 void Session::setStory_pool(const shared_ptr<map<string, Story *>> &story_pool) {
     Session::story_pool = story_pool;
+}
+
+void Session::sendMessage(Message msg) {
+    HttpClient client(msg.getUrl());
+    json j;
+    j["session_id"] = msg.get_session_id();
+    j["content"] = msg.get_content();
+    j["scenario_id"] = scenario_id;
+    string json_string= j.dump();
+    auto response=client.request("POST", "/json", json_string); // The endpoint should always ends with /json
+    cout << "Message sent with the following reply:" << endl;
+    cout << response->content.rdbuf() << endl;
+}
+
+int Session::generate_msg(nlohmann::json json, long timestamp) {
+    try {
+        string content = "json_" + json.dump();
+        Message msg(content, timestamp, callback, session_id);
+        (*mq).push(msg);
+    } catch (exception e) {
+        cout << "Error when getting a a value in the status dictionary." << e.what() << endl;
+    }
+    cout << "Session " << (*this).getSession_id() << ": added a message to MQ: " << json.dump() << endl;
+    return 0;
 }

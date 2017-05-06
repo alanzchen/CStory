@@ -53,8 +53,6 @@ private:
 
     int read_next_snr(std::string snr_id);
 
-
-
 public:
     std::vector<std::string> split_line(std::string line);
     Story(std::string story_id, std::string story_file_path);
