@@ -26,7 +26,8 @@ private:
     static std::regex snr_id_re;//:: old_poem_test
     std::string story_id;
     std::map<std::string, std::vector<std::string>> scenarios;
-    static std::regex trigger_re; // <<set $galley_door_visited = false>>
+    static std::regex trigger_re
+    ; // <<set $galley_door_visited = false>>
     static std::regex continue_re;// [[shiny_interest]]
     static std::regex end_snr; // [[游戏结束|goodbye_hell]] | [[我听见有人在说话。|vocal_demo]]
     static std::regex delay; // [[delay 30s|more_alive]]

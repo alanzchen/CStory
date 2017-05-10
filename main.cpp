@@ -79,7 +79,7 @@ int main() {
     // TODO: Load all the stories and add them to this map
     shared_ptr<map<string, Story*>> stories;
     stories = std::make_shared<map<string, Story*>>();
-    (*stories)["silent_night"] = new Story("silent_night", "stories/silent_night.story");
+    (*stories)["silent_night"] = new Story("silent_night", "story/silent_night.story");
 
     // Message Queue (mq)
     shared_ptr<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>> mq;

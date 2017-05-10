@@ -3,14 +3,11 @@
 //
 
 #include "story.h"
-#include "message.h"
-#include "session.h"
-#include <string>
-#include <vector>
-#include <iostream>
+#include <boost/algorithm/string.hpp>
 
 
 using namespace std;
+
 
 regex Story::snr_id_re = regex(":: .*");
 regex Story::trigger_re = regex("<<set .*>>");
@@ -26,14 +23,23 @@ Story::Story(string story_id, string story_file_path) {
     story_input.open(story_file_path);
     this->story_id = story_id;
     initialize();
+    story_input.close();
 }
 
 int Story::initialize() {
     string line;
+    if (story_input.is_open()) {
+        cout << "file opened" << endl;
+    } else {
+        cerr << "For some reason, I don't want to run this program and debug it." << endl;
+    }
     while (getline(story_input, line)) {
         if (regex_match(line, snr_id_re)) {
             string snr_id = line.substr(3);
+            cout << "Handle scenario: " << snr_id << endl;
             read_next_snr(snr_id);
+            for (string s: scenarios[snr_id])
+                cout << s << endl;
         }
     }
 
@@ -45,12 +51,7 @@ int Story::read_next_snr(string snr_id) {
     vector<string> lines;
     scenarios[snr_id] = lines;
     while (getline(story_input, line)) {
-        if (regex_search(line, trigger_re)) {
-            vector<string> result = split_line(line);
-            for (unsigned i = 0; i < result.size(); i++)
-                scenarios[snr_id].push_back(result[i]);
-
-        } else {
+        if (!regex_search(line, trigger_re) & line.length() > 0) {
             scenarios[snr_id].push_back(line);
         }
 
@@ -167,16 +168,16 @@ std::string Story::get_var_name(std::string line) {
 void Story::handle_delay(std::string line, Session session) {
     unsigned int pos = line.find('^');
     int numerica = stoi(line.substr(8, pos - 9));
-    switch (line[pos-1]) {
+    switch (line[pos - 1]) {
         case 'm':
-            numerica = numerica*60;
+            numerica = numerica * 60;
             break;
         case 'h':
-            numerica = numerica*3600;
+            numerica = numerica * 3600;
             break;
         default:
             break;
     }
-    set_up_msg(session,time(nullptr) + numerica, line);
+    set_up_msg(session, time(nullptr) + numerica, line);
 }
 
