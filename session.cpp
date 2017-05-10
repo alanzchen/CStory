@@ -11,13 +11,14 @@ using namespace std;
 using namespace nlohmann;
 typedef SimpleWeb::Client<SimpleWeb::HTTP> HttpClient;
 
-Session::Session(std::string session_id_, std::string story_id_, std::string scenario_id_, std::string callback_,
+Session::Session(std::string session_id_, std::string story_id_, std::string scenario_id_, std::string endpoint_, std::string callback_,
                  std::shared_ptr<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>> mq_,
                  std::shared_ptr<std::map<std::string, Story*>> story_pool_) {
     session_id = session_id_;
     story_id = story_id_;
     scenario_id = scenario_id_;
     callback = callback_;
+    endpoint = endpoint_;
     mq = mq_;
     story_pool = story_pool_;
     cout << "Successfully created session with id = " << session_id << endl;
@@ -27,6 +28,9 @@ Session::Session(nlohmann::json j) {
     try {
         session_id = j["session_id"].get<string>();
         story_id = j["story_id"].get<string>();
+        scenario_id = j["scenario_id"].get<string>();
+        callback = j["callback"].get<string>();
+        endpoint = j["endpoint"].get<string>();
         map<std::string, std::string> status;
         for (auto it = j["status"].begin(); it != j["status"].end(); ++it) {
             status[it.key()] = it.value();
@@ -43,6 +47,8 @@ nlohmann::json Session::to_json() {
         j["story_id"] = story_id;
         j["status"] = status;
         j["scenario"] = scenario_id;
+        j["callback"] = callback;
+        j["endpoint"] = endpoint;
     } catch(exception e) {
         cout << "Error when dumping a session to json object: " << e.what() << endl;
         return 1;
@@ -124,9 +130,14 @@ void Session::sendMessage(Message msg) {
     j["content"] = msg.get_content();
     j["scenario_id"] = scenario_id;
     string json_string= j.dump();
-    auto response=client.request("POST", "/json", json_string); // The endpoint should always ends with /json
-    cout << "Message sent with the following reply:" << endl;
-    cout << response->content.rdbuf() << endl;
+    try {
+        auto response=client.request("POST", endpoint, json_string); // The endpoint should always ends with /json
+        cout << "Message sent with the following reply:" << endl;
+        cout << response->content.rdbuf() << endl;
+    } catch(exception &e) {
+        cout << "Error: sendMessage generates the following exception:" << endl << e.what() << endl;
+    }
+
 }
 
 int Session::generate_msg(nlohmann::json json, long timestamp) {

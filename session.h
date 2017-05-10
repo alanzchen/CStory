@@ -27,12 +27,13 @@ private:
     std::map <std::string, std::string> status;
     std::string scenario_id;
     std::string callback;
+    std::string endpoint;
     std::shared_ptr<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>> mq;
     std::shared_ptr<std::map<std::string, Story*>> story_pool;
 
 public:
 
-    Session(std::string session_id, std::string story_id, std::string scenario_id, std::string callback,
+    Session(std::string session_id, std::string story_id, std::string scenario_id, std::string endpoint, std::string callback,
             std::shared_ptr<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>> mq,
             std::shared_ptr<std::map<std::string, Story*>> story);
 

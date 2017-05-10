@@ -105,6 +105,7 @@ int main() {
             load_sessions(sessions, mq, stories);
         } else if (content == "shutdown") {
             Message shutdown("shutdown", 0, "", "");
+            (*mq).push(shutdown);
         }
         *response << "HTTP/1.1 200 OK\r\nContent-Length: " << content.length() << "\r\n\r\n"
                   << content;
@@ -124,7 +125,7 @@ int main() {
                 // found session in session_map
                 // all we care is what the player chose
                 Session current_session = search->second;
-                string next_scenario = j["choice"];
+                string next_scenario = j["choice"].get<string>();
                 // Let the session to handle the reply
                 current_session.handle_reply(next_scenario);
                 (*stories)[current_session.getStory_id()]->process_session(current_session);
@@ -157,6 +158,7 @@ int main() {
             // Here are the information needed to start a session
             string callback = j["callback"].get<string>();
             string story_id = j["story_id"].get<string>();
+            string endpoint = j["endpoint"].get<string>();
             string session_id;
 
             // Use current timestamp as the session id
@@ -173,6 +175,7 @@ int main() {
                 Session * new_session = new Session(session_id,
                                                     story_id,
                                                     "start", // Story always starts with "start".
+                                                    endpoint,
                                                     callback,
                                                     mq,
                                                     stories);
@@ -278,6 +281,7 @@ int main() {
 //    this_thread::sleep_for(chrono::seconds(1));
 
     // Loop for the MQ
+    cout << "Ready." << endl;
     string current_session_id;
     while(true) {
         if (!(*mq).empty()) {
@@ -287,12 +291,13 @@ int main() {
                 if ((*mq).top().get_content() == "shutdown") {
                     cout << "Received shutdown message, shutting down." << endl;
                     save_sessions(sessions);
-                    break;
+                    return 0;
                 }
                 // Send the message and pop the first
                 current_session_id = (*mq).top().get_session_id();
                 Session *current_session = & (*sessions).at(current_session_id);
                 (*current_session).sendMessage((*mq).top());
+                (*mq).pop();
             } else {
                 sleep(1);
             }
