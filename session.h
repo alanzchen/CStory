@@ -33,7 +33,7 @@ private:
 
 public:
 
-    long previous_timestamp;
+    int delay;
 
     Session(std::string session_id, std::string story_id, std::string scenario_id, std::string endpoint, std::string callback,
             std::shared_ptr<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>> mq,

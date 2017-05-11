@@ -131,15 +131,15 @@ void Session::sendMessage(Message msg) {
     j["session_id"] = msg.get_session_id();
     j["content"] = msg.get_content();
     j["scenario_id"] = scenario_id;
+    j["choice"] = false;
     string json_string= j.dump();
     try {
         auto response=client.request("POST", endpoint, json_string); // The endpoint should always ends with /json
         cout << "Message sent to " << callback << endpoint << " with the following reply:" << endl;
-        cout << response->content.rdbuf() << endl;
+        cout << response->status_code << endl;
     } catch(exception &e) {
         cout << "Error: sendMessage generates the following exception:" << endl << e.what() << endl;
     }
-
 }
 
 int Session::generate_msg(nlohmann::json json, long timestamp) {
