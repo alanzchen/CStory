@@ -25,11 +25,6 @@ long Message::get_time() const{
     return timestamp;
 }
 
-bool MyCompare::operator()(Message left, Message right) const
-{
-    return left.get_time()>right.get_time();
-}
-
 
 /* 
  * Below is the main function for test.
@@ -38,7 +33,7 @@ bool MyCompare::operator()(Message left, Message right) const
 
 int test()
 {
-    priority_queue<Message,vector<Message>,MyCompare> pqueue;
+    priority_queue<Message, vector<Message>, CompareTimestamp> pqueue;
     
     Message m1("hello",time(nullptr),"url1", "session_id1");
     

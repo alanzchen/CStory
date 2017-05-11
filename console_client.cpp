@@ -4,7 +4,6 @@
 
 #include "client_http.hpp"
 #include "server_http.hpp"
-#include <mutex>
 
 //Added for the default_resource example
 
@@ -118,34 +117,35 @@ int main() {
     if (game_server.size() == 0) {
         game_server = "localhost:8080";
     }
-
+    std::priority_queue<Message, std::vector<Message>, CompareTimestamp> mq;
     // start the client server so that the server can call
     HttpServer server;
     server.config.port=8081;
 
     pprint("CStory", "What story do you want to play? If you are not sure, default is silent_night.");
     string story_id;
+    cout << "Enter a story id: ";
     getline(cin, story_id);
     if (story_id.size() == 0) {
         story_id = "silent_night";
     }
-
     json choices;
     LocalSession session = LocalSession();
-    server.resource["^/json$"]["POST"]=[&session, &choices]
+    server.resource["^/json$"]["POST"]=[&session, &choices, &mq]
             (shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
         try {
             auto j = json::parse(request->content);
             string content;
-            if (j["session_id"] == session.session_id) {
-                if (content.substr(0, 5) == "json_") {
-                    json c(content.substr(5));
-                    choices = c;
-                } else {
-                    pprint(content);
-                }
-                session.scenario_id = j["scenario_id"].get<string>();
+            if (j["session_id"] != session.session_id) {
+                throw(std::runtime_error("Invalid session_id."));
             }
+            if (j["content"].size()) {
+                pprint("Taylor (Typing)", j["content"].get<string>());
+            } else { // this is a choice
+
+            }
+            session.scenario_id = j["scenario_id"].get<string>();
+
             *response << "HTTP/1.1 200 OK\r\n"
                       << "Content-Type: application/json\r\n"
                       << "Content-Length: " << content.length() << "\r\n\r\n"
@@ -168,16 +168,15 @@ int main() {
     });
 
     // request for a session
-    session.initialise("localhost:8080", game_server, story_id);
+    session.initialise("localhost:8081", game_server, story_id);
     if (session.session_id == "failed") {
         pprint("CStory", "Fatal error: cannot establish connection with the server.");
         return 1;
     }
 
-//    while (true) {
-//        // TODO: Main loop
-//        sleep(1);
-//    };
-    cout << "Connection closed." << endl;
+    cout << "[Incoming Connection]" << endl;
+
+
+    server_thread.join();
     return 0;
 }

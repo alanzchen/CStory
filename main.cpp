@@ -2,6 +2,7 @@
 #include "client_http.hpp"
 #include <fstream>
 #include <boost/filesystem.hpp>
+#include <boost/thread/thread.hpp>
 #include <ctime>
 #include "json.hpp"
 #include "story.h"
@@ -299,10 +300,10 @@ int main() {
                 (*current_session).sendMessage((*mq).top());
                 (*mq).pop();
             } else {
-                sleep(1);
+                boost::this_thread::sleep(boost::posix_time::milliseconds(10));
             }
         } else {
-            sleep(1);
+            boost::this_thread::sleep(boost::posix_time::milliseconds(10));
         }
     }
 

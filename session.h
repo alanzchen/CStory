@@ -33,6 +33,8 @@ private:
 
 public:
 
+    long previous_timestamp;
+
     Session(std::string session_id, std::string story_id, std::string scenario_id, std::string endpoint, std::string callback,
             std::shared_ptr<std::priority_queue<Message, std::vector<Message>, CompareTimestamp>> mq,
             std::shared_ptr<std::map<std::string, Story*>> story);

@@ -34,14 +34,6 @@ private:
     std::string url;
 };
 
-class MyCompare//定义比较方法，比较time, time小的在前面
-{
-
-public:
-    bool operator()(Message left, Message right) const;
-
-};
-
 struct CompareTimestamp {
     bool operator()(Message const & p1, Message const & p2) {
         // return "true" if "p1" is ordered before "p2", for example:

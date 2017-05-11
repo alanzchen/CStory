@@ -29,17 +29,17 @@ Story::Story(string story_id, string story_file_path) {
 int Story::initialize() {
     string line;
     if (story_input.is_open()) {
-        cout << "file opened" << endl;
+        cout << "Story file opened successfully." << endl;
     } else {
-        cerr << "For some reason, I don't want to run this program and debug it." << endl;
+        cerr << "Failed to load story file." << endl;
     }
     while (getline(story_input, line)) {
         if (regex_match(line, snr_id_re)) {
             string snr_id = line.substr(3);
-            cout << "Handle scenario: " << snr_id << endl;
+//            cout << "Handle scenario: " << snr_id << endl;
             read_next_snr(snr_id);
-            for (string s: scenarios[snr_id])
-                cout << s << endl;
+//            for (string s: scenarios[snr_id])
+//                cout << s << endl;
         }
     }
 
