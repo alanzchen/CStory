@@ -103,11 +103,9 @@ const string &Session::getStory_id() const {
 }
 
 int Session::generate_msg(std::string content, long timestamp) {
-    timestamp = timestamp;
     try {
         Message msg(content, timestamp, callback, session_id);
         (*mq).push(msg);
-        previous_timestamp = timestamp;
     } catch (exception e) {
         cout << "Error when getting a a value in the status dictionary." << e.what() << endl;
         return 1;
