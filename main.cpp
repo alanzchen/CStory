@@ -6,6 +6,7 @@
 #include <ctime>
 #include "json.hpp"
 #include "story.h"
+#include "uuid.h"
 #include "message.h"
 #include "session.h"
 #include <vector>
@@ -162,11 +163,8 @@ int main() {
             string endpoint = j["endpoint"].get<string>();
             string session_id;
 
-            // Use current timestamp as the session id
-            std::time_t current_ts = std::time(nullptr);
-            stringstream tmp;
-            tmp << current_ts;
-            session_id = tmp.str();
+            // Using boost to generate UUID for each session
+            session_id = generate_uuid();
 
             // Finding the story_id in the story pool
             auto search = (*stories).find(story_id);
