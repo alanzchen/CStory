@@ -66,7 +66,7 @@ public:
 
     int generate_msg(std::string content, long timestamp);
 
-    int generate_msg(nlohmann::json json, long timestamp);
+    int generate_msg(nlohmann::json choice_json, long timestamp);
 
     void sendMessage(Message msg);
 

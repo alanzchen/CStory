@@ -146,7 +146,12 @@ int main() {
                       << content;
         }
         catch(exception& e) {
-            *response << "HTTP/1.1 400 Bad Request\r\nContent-Length: " << strlen(e.what()) << "\r\n\r\n" << e.what();
+            json j;
+            j["error"] = e.what();
+            string err = j.dump();
+            *response << "HTTP/1.1 400 Bad Request\r\n"
+                      << "Content-Type: application/json\r\n"
+                      << "Content-Length: " << err.size() << "\r\n\r\n" << err;
         }
     };
 
@@ -195,7 +200,12 @@ int main() {
                       << content;
         }
         catch(exception& e) {
-            *response << "HTTP/1.1 400 Bad Request\r\nContent-Length: " << strlen(e.what()) << "\r\n\r\n" << e.what();
+            json j;
+            j["error"] = e.what();
+            string err = j.dump();
+            *response << "HTTP/1.1 400 Bad Request\r\n"
+                      << "Content-Type: application/json\r\n"
+                      << "Content-Length: " << err.size() << "\r\n\r\n" << err;
         }
     };
 

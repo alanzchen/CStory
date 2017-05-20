@@ -140,14 +140,20 @@ void Session::sendMessage(Message msg) {
     }
 }
 
-int Session::generate_msg(nlohmann::json json, long timestamp) {
+int Session::generate_msg(nlohmann::json choice_json, long timestamp) {
     try {
-        string content = "json_" + json.dump();
+        json j;
+        j["session_id"] = session_id;
+        j["content"] = "";
+        j["scenario_id"] = scenario_id;
+        j["choice"] = true;
+        j["choices"] = choice_json;
+        string content = j.dump();
         Message msg(content, timestamp, callback, session_id);
         (*mq).push(msg);
     } catch (exception e) {
         cout << "Error when getting a a value in the status dictionary." << e.what() << endl;
     }
-    cout << "Session " << (*this).getSession_id() << ": added a message to MQ: " << json.dump() << endl;
+    cout << "Session " << (*this).getSession_id() << ": added a message to MQ: " << choice_json.dump() << endl;
     return 0;
 }
