@@ -163,7 +163,8 @@ void Story::handle_line(std::string line, Session session, long &timestamp) {
             string text = i->first;
             string next_snr = i->second;
             int delayTime = getDelayTime(text);
-            timestamp + delayTime;
+            timestamp +=delayTime;
+
         } else {
             int delayTime = getDelayTime(line);
             timestamp += delayTime;
