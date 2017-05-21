@@ -54,8 +54,7 @@ struct LocalSession {
         try {
             response = (*this).request("/start", j.dump());
             auto r = json::parse(response);
-//            if (r["scenario"] == scenario_id) {
-            if (true) {
+            if (r["scenario"] == scenario_id) {
                 session_id =  r["session_id"];
             } else {
                 pprint("CStory", "Invalid response from the server:");
@@ -157,11 +156,11 @@ int main() {
             if (j["session_id"] != session.session_id) {
                 throw(std::runtime_error("Invalid session_id."));
             }
-            if (!j["choice"].get<bool>()) {
+            if (j["type"].get<string>() == "message") {
                 pprint("Taylor", j["content"].get<string>()); // show message to the console
-            } else if (!j["delay"].is_null()) {
+            } else if (j["type"].get<string>() == "delay") {
                 if (j["content"].get<string>().size() > 0) {
-                    pprint("CStory", j["content"].get<string>());
+                    pprint("CStory", "[[" + j["content"].get<string>() + "]]");
                 } else {
                     pprint("CStory", "Taylor will get back to you in a while.");
                 }

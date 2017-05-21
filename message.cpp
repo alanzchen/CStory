@@ -2,13 +2,13 @@
 
 using namespace std;
 
-Message::Message(string message_, long times, string url_, string sessionID, bool is_choice)
+Message::Message(string message_, long times, string url_, string sessionID, string type_)
 {
     content = message_;
     timestamp = times;
     url = url_;
     session_id = sessionID;
-    choice = is_choice;
+    type = type_;
     //The object of Message class and priority_queue should be declared in the main function.
 }
 

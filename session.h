@@ -64,7 +64,9 @@ public:
 
     void sendMessage(Message msg);
 
-    void sendMessage(nlohmann::json choice_json);
+    void sendChoice(nlohmann::json choice_json);
+
+    void sendDelay(nlohmann::json delay_json);
 
     int handle_reply(std::string choice);
 

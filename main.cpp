@@ -130,7 +130,6 @@ int main() {
                 string next_scenario = j["choice"].get<string>();
                 // Let the session to handle the reply
                 current_session.handle_reply(next_scenario);
-//                (*stories)[current_session.getStory_id()]->process_session(current_session);
                 json session_json = current_session.to_json();
                 session_json["message"] = "please wait for us to callback";
                 content = session_json.dump();
@@ -178,7 +177,7 @@ int main() {
                 // create new session in session_map
                 Session * new_session = new Session(session_id,
                                                     story_id,
-                                                    "go_to_cockpit", // Story always starts with "start".
+                                                    "start", // Story always starts with "start".
                                                     endpoint,
                                                     callback,
                                                     mq,
@@ -305,9 +304,12 @@ int main() {
                 // Send the message and pop the first
                 current_session_id = (*mq).top().get_session_id();
                 Session *current_session = & (*sessions).at(current_session_id);
-                if ((*mq).top().isChoice()) {
+                if ((*mq).top().type == "choice") {
                     json j = json::parse((*mq).top().get_content());
-                    (*current_session).sendMessage(j);
+                    (*current_session).sendChoice(j);
+                } else if ((*mq).top().type == "delay") {
+                    json j = json::parse((*mq).top().get_content());
+                    (*current_session).sendDelay(j);
                 } else { // this is a regular message
                     (*current_session).sendMessage((*mq).top());
                 }
