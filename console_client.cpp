@@ -128,14 +128,28 @@ int main() {
     pprint("CStory", "Welcome to CStory Engine Demo Console Client.");
     pprint("CStory", "Which server do you want to connect? Default is localhost:8080");
     string game_server;
-    cout << "Server: ";
+    cout << "Server (press Enter to skip): ";
     getline(cin, game_server);
     if (game_server.size() == 0) {
         game_server = "localhost:8080";
     }
+    pprint("CStory", "Do you want to specify a different local port other than 8081?");
+    cout << "Port (press Enter to skip): ";
+    int local_port;
+    string port_str;
+    if (port_str.size() == 0) {
+        port_str = "8081";
+    }
+    getline(cin, port_str);
+    try {
+        local_port = stoi(port_str);
+    } catch (exception &e) {
+        pprint("CStory", "Oops, it doesn't seem like a valid port. Using 8081.");
+    }
+
     // start the client server so that the server can call
     HttpServer server;
-    server.config.port=8081;
+    server.config.port=local_port;
 
     pprint("CStory", "What story do you want to play? If you are not sure, default is silent_night.");
     string story_id;
@@ -191,7 +205,7 @@ int main() {
     });
 
     // request for a session
-    session.initialise("localhost:8081", game_server, story_id);
+    session.initialise("localhost:" + port_str, game_server, story_id);
     if (session.session_id == "failed") {
         pprint("CStory", "Fatal error: cannot establish connection with the server.");
         return 1;
