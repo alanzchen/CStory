@@ -213,7 +213,10 @@ void Story::handle_set(std::string trigger, Session session) {
 bool Story::judge(std::string ifString, Session session) {
     string varName = get_var_name(ifString);
     string varValue = get_var_value(ifString);
+<<<<<<< HEAD
     cout << "var name: " << varName << " varVal" << varValue << endl;
+=======
+>>>>>>> ec39b6b83677c2ef18da316c1c724ef42efcdbc2
     return session.getStatus(varName) == varValue;
 }
 
