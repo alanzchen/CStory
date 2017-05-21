@@ -20,7 +20,7 @@
 
 class Session;
 
-long getCurrentTime();
+long get_current_time();
 
 class Story {
 private:
@@ -63,7 +63,7 @@ private:
     /*
      * judge how long to delay from the script data.
      */
-    int getDelayTime(std::string line);
+    int get_delay_time(std::string line);
 
     /*
      * the very basic handler
@@ -93,18 +93,18 @@ private:
 
     void validate();
 
-    void translateOptions(std::map<std::string, std::string> & target, std::string line);
+    void translate_options(std::map<std::string, std::string> &target, std::string line);
 public:
 
     Story(std::string story_id, std::string story_file_path);
 
-    std::string getStoryID();
+    std::string get_story_ID();
 
     void initialize();
 
-    bool isValidated();
+    bool is_validated();
 
-    void process_session(Session &session, std::string snr_id = "", long tm = getCurrentTime());
+    void process_session(Session &session, std::string snr_id = "", long tm = get_current_time());
 };
 
 

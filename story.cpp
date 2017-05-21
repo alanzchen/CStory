@@ -6,7 +6,7 @@
 #include <random>
 #include <boost/algorithm/string.hpp>
 
-void negBool(bool &target) {
+void neg_bool(bool &target) {
     if (target) {
         target = false;
     } else {
@@ -14,7 +14,7 @@ void negBool(bool &target) {
     }
 }
 
-long getCurrentTime() {
+long get_current_time() {
     return time(nullptr);
 }
 
@@ -174,7 +174,7 @@ void Story::process_session(Session &session, string snr_id, long tm) {
                     cout << "unsatisfied" << endl;
                 }
             } else {
-                negBool(status);
+                neg_bool(status);
             }
             continue;
         } else if (regex_match(line, end_if_re)) {
@@ -204,7 +204,7 @@ void Story::handle_line(std::string line, Session session, long &timestamp) {
             map<string, string>::iterator i = option.begin();
             string next_snr = i->first;
             string text = i->second;
-            int delayTime = getDelayTime(text);
+            int delayTime = get_delay_time(text);
             int index = line.find('^');
             string msgcontent = text.substr(index - 1);
             cout << "delay " << delayTime << "s for msg: " << msgcontent << endl;
@@ -212,7 +212,7 @@ void Story::handle_line(std::string line, Session session, long &timestamp) {
             timestamp += delayTime;
             process_session(session, next_snr, timestamp);
         } else {
-            int delayTime = getDelayTime(line);
+            int delayTime = get_delay_time(line);
             timestamp += delayTime;
             unsigned index = line.find('^');
             line = line.substr(index + 1);
@@ -282,7 +282,7 @@ std::map<std::string, std::string> Story::getOptions(std::string line) {
         } else if (c == ']') {
             buffer.pop();
             if (buffer.size() == 0) {
-                translateOptions(result, line.substr(start, i - start + 1));
+                translate_options(result, line.substr(start, i - start + 1));
             }
         }
     }
@@ -293,7 +293,7 @@ std::map<std::string, std::string> Story::getOptions(std::string line) {
 /*
  * analyze the options and put the result in given map
  */
-void Story::translateOptions(std::map<std::string, std::string> &target, std::string line) {
+void Story::translate_options(std::map<std::string, std::string> &target, std::string line) {
     unsigned long index = line.find('|');
     string display = line.substr(2, index - 2);
     string key = line.substr(index + 1, line.size() - index - 3);
@@ -335,7 +335,7 @@ std::string Story::get_var_name(std::string line) {
  * calculate how long should the message be delayed
  * according to a delay-statement
  */
-int Story::getDelayTime(std::string line) {
+int Story::get_delay_time(std::string line) {
     unsigned long pos = line.find('^');
     int start = 0, end = 0;
 
@@ -364,14 +364,14 @@ int Story::getDelayTime(std::string line) {
 /*
  * getter of id
  */
-std::string Story::getStoryID() {
+std::string Story::get_story_ID() {
     return story_id;
 }
 
 /*
  * get the validate status of the story
  */
-bool Story::isValidated() {
+bool Story::is_validated() {
     return validated;
 }
 
