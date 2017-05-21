@@ -8,7 +8,7 @@ using namespace boost::uuids;
 
 //This is a another way to generate UUID by boost.
 
-std::string generate_uuid(){
+std::string generate_uuid() {
     boost::uuids::random_generator gen;
     boost::uuids::uuid a_uuid = gen();
     return boost::uuids::to_string(a_uuid);

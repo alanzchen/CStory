@@ -163,58 +163,12 @@ bool Story::judge(std::string ifString, Session session) {
 void Story::set_up_msg(Session session, long msg_time, std::string content) {
 //    cout << "Message handled: " << content << " at time: " << msg_time<< endl;
     if (regex_match(content, options)) {
-        map<string, string> choices;
-        translateOptions(choices, content);
+        map<string, string> choices = getOptions(content);
         nlohmann::json choice_json;
-
-
 
     } else {
         session.generate_msg(content, msg_time);
     }
-}
-
-std::string Story::get_var_value(std::string line) {
-    unsigned long i = line.size() - 2;
-    do {
-        i--;
-    } while (line[i] != ' ');
-    string value = line.substr(i + 1, line.size() - i - 3);
-    if (value[0] == '"') {
-        value = value.substr(1, value.size() - 2);
-    }
-    return value;
-}
-
-std::string Story::get_var_name(std::string line) {
-    int start = -1;
-    for (int i = 0; i < line.size(); i++) {
-        if (line[i] == '$') {
-            start = i + 1;
-        }
-        if (start != -1 && line[i] == ' ') {
-            return line.substr(start, i - start);
-        }
-    }
-    return "";
-}
-
-
-int Story::getDelayTime(std::string line, Session session) {
-    unsigned long pos = line.find('^');
-    int numerica = stoi(line.substr(8, pos - 9));
-    switch (line[pos - 1]) {
-        case 'm':
-            return numerica * 60;
-        case 'h':
-            return numerica * 3600;
-        default:
-            return numerica;
-    }
-}
-
-std::string Story::getStoryID() {
-    return story_id;
 }
 
 std::map<std::string, std::string> Story::getOptions(std::string line) {
@@ -240,8 +194,54 @@ std::map<std::string, std::string> Story::getOptions(std::string line) {
 }
 
 void Story::translateOptions(std::map<std::string, std::string> target, std::string line) {
-
+    unsigned long index = line.find('|');
+    string display =  line.substr(2, index - 2);
+    string key = line.substr(index+1, line.size() - index - 3);
+    target[key] = display;
 }
+
+
+std::string Story::get_var_value(std::string line) {
+    unsigned long i = line.size() - 2;
+    do {
+        i--;
+    } while (line[i] != ' ');
+    string value = line.substr(i + 1, line.size() - i - 3);
+    if (value[0] == '"') {
+        value = value.substr(1, value.size() - 2);
+    }
+    return value;
+}
+
+std::string Story::get_var_name(std::string line) {
+    int start = -1;
+    for (int i = 0; i < line.size(); i++) {
+        if (line[i] == '$') {
+            start = i + 1;
+        }
+        if (start != -1 && line[i] == ' ') {
+            return line.substr(start, i - start);
+        }
+    }
+    return "";
+}
+int Story::getDelayTime(std::string line, Session session) {
+    unsigned long pos = line.find('^');
+    int numerica = stoi(line.substr(8, pos - 9));
+    switch (line[pos - 1]) {
+        case 'm':
+            return numerica * 60;
+        case 'h':
+            return numerica * 3600;
+        default:
+            return numerica;
+    }
+}
+
+std::string Story::getStoryID() {
+    return story_id;
+}
+
 
 
 
