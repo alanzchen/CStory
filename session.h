@@ -24,7 +24,7 @@ private:
 
     std::string session_id;
     std::string story_id;
-    std::map <std::string, std::string> status;
+    std::map <std::string, std::string> * status;
     std::string scenario_id;
     std::string callback;
     std::string endpoint;
@@ -49,8 +49,6 @@ public:
     const std::string &getStory_id() const;
 
     const std::string &getScenario_id() const;
-
-    const std::map<std::string, std::string> &getStatus() const;
 
     const std::string &getStatus(std::string var) const; // return "false" if the var doesn't exits
 
