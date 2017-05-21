@@ -70,7 +70,6 @@ int Session::handle_reply(std::string choice) {
 int Session::set_status(std::string key, std::string value) {
     try {
         (*status)[key] = value;
-        cout << (*status).size() << endl;
     } catch(exception e) {
         cout << "Error when setting status in a session: " << e.what() << endl;
         return 1;
@@ -168,7 +167,7 @@ int Session::generate_msg(nlohmann::json choice_json, long timestamp) {
     return 0;
 }
 
-int Session::ackDelay(int minutes, std::string message) {
+int Session::ackDelay(int minutes, long timestamp, std::string message) {
     try {
         json j;
         j["session_id"] = session_id;
@@ -177,8 +176,8 @@ int Session::ackDelay(int minutes, std::string message) {
         j["choice"] = false;
         j["delay"] = minutes;
         string content = j.dump();
-        Message msg(content, 0, callback, session_id);
-        sendMessage(msg);
+        Message msg(content, timestamp, callback, session_id);
+        (*mq).push(msg);
         return 0;
     } catch (exception e) {
         cout << "Error when acknowledging client about delay: " << e.what() << endl;
