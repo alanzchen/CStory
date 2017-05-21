@@ -120,7 +120,6 @@ void Session::setStory_pool(const shared_ptr<map<string, Story *>> &story_pool) 
 }
 
 void Session::sendMessage(Message msg) {
-    HttpClient client(callback);
     json j;
     j["session_id"] = msg.get_session_id();
     j["content"] = msg.get_content();
@@ -128,6 +127,7 @@ void Session::sendMessage(Message msg) {
     j["type"] = "message";
     string json_string = j.dump();
     try {
+        HttpClient client(callback);
         auto response=client.request("POST", endpoint, json_string); // The endpoint should always ends with /json
         cout << "Message sent to " << callback << endpoint << " with the following reply:" << endl;
         cout << response->status_code << endl;
@@ -137,7 +137,6 @@ void Session::sendMessage(Message msg) {
 }
 
 void Session::sendChoice(nlohmann::json choice_json) {
-    HttpClient client(callback);
     json j;
     j["session_id"] = session_id;
     j["content"] = "";
@@ -146,6 +145,7 @@ void Session::sendChoice(nlohmann::json choice_json) {
     j["choices"] = choice_json;
     string json_string= j.dump();
     try {
+        HttpClient client(callback);
         auto response=client.request("POST", endpoint, json_string); // The endpoint should always ends with /json
         cout << "Choice sent to " << callback << endpoint << " with the following reply:" << endl;
         cout << response->status_code << endl;
@@ -155,9 +155,9 @@ void Session::sendChoice(nlohmann::json choice_json) {
 }
 
 void Session::sendDelay(nlohmann::json delay_json) {
-    HttpClient client(callback);
     string json_string= delay_json.dump();
     try {
+        HttpClient client(callback);
         auto response=client.request("POST", endpoint, json_string); // The endpoint should always ends with /json
         cout << "Delay sent to " << callback << endpoint << " with the following reply:" << endl;
         cout << response->status_code << endl;

@@ -132,10 +132,10 @@ int main() {
     cout << "Port (press Enter to skip): ";
     int local_port;
     string port_str;
+    getline(cin, port_str);
     if (port_str.size() == 0) {
         port_str = "8081";
     }
-    getline(cin, port_str);
     try {
         local_port = stoi(port_str);
     } catch (exception &e) {
