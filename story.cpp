@@ -178,12 +178,12 @@ void Story::handle_line(std::string line, Session session, long &timestamp) {
             string next_snr = i->first;
             string text = i->second;
             int delayTime = getDelayTime(text);
-            timestamp += delayTime;
             int index = line.find('^');
-            string msgcontent = text.substr(index + 1);
+            string msgcontent = text.substr(index - 1);
             cout << "delay " << delayTime << "s for msg: " << msgcontent << endl;
             session.ackDelay(delayTime / 60, timestamp, msgcontent);
-            process_session(session, text, timestamp);
+            timestamp += delayTime;
+            process_session(session, next_snr, timestamp);
         } else {
             int delayTime = getDelayTime(line);
             timestamp += delayTime;
