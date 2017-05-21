@@ -159,7 +159,11 @@ int main() {
             if (!j["choice"].get<bool>()) {
                 pprint("Taylor", j["content"].get<string>()); // show message to the console
             } else if (!j["delay"].is_null()) {
-                pprint("CStory", "Taylor will get back to you in a while.");
+                if (j["content"].get<string>().size() > 0) {
+                    pprint("CStory", j["content"].get<string>());
+                } else {
+                    pprint("CStory", "Taylor will get back to you in a while.");
+                }
             } else { // this is a choice
                 current_choices = j["choices"];
             }

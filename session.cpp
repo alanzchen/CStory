@@ -181,7 +181,9 @@ int Session::ackDelay(int minutes, std::string message) {
         string content = j.dump();
         Message msg(content, 0, callback, session_id);
         sendMessage(msg);
+        return 0;
     } catch (exception e) {
-        cout << "Error when getting a a value in the status dictionary." << e.what() << endl;
+        cout << "Error when acknowledging client about delay: " << e.what() << endl;
+        return 1;
     }
 }
