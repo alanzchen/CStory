@@ -27,7 +27,7 @@ regex Story::continue_re = regex("\\[\\[[\\S_]*]]");
 regex Story::if_re = regex("<<.*if .*>>");
 regex Story::else_re = regex("<<else.*>>");
 regex Story::end_if_re = regex("<<endif>>");
-regex Story::delay_re = regex("delay ^.*");
+regex Story::delay_re = regex(".*delay.*");
 regex Story::options_re = regex("\\[\\[.*\\|.*\\]\\].?");
 
 Story::Story(string story_id, string story_file_path) {
@@ -172,15 +172,18 @@ void Story::handle_line(std::string line, Session session, long &timestamp) {
         handle_set(line, session);
     } else if (regex_match(line, delay_re)) {
         if (regex_match(line, options_re)) {
+            cout << "handle delay " << line << endl;
             map<string, string> option = getOptions(line);
             map<string, string>::iterator i = option.begin();
-            string text = i->first;
-            string next_snr = i->second;
+            string next_snr = i->first;
+            string text = i->second;
             int delayTime = getDelayTime(text);
             timestamp += delayTime;
             int index = line.find('^');
-            session.ackDelay(delayTime / 60, line.substr(index + 1));
-            process_session(session, next_snr, timestamp);
+            string messagecontent = text.substr(index + 1);
+            cout << "delay " << delayTime << "s for msg: " << messagecontent << endl;
+            session.ackDelay(delayTime / 60, messagecontent);
+            process_session(session, text, timestamp);
         } else {
             int delayTime = getDelayTime(line);
             timestamp += delayTime;
@@ -282,7 +285,21 @@ std::string Story::get_var_name(std::string line) {
 
 int Story::getDelayTime(std::string line) {
     unsigned long pos = line.find('^');
-    int numerica = stoi(line.substr(8, pos - 9));
+    int start = 0, end = 0;
+
+    for (unsigned int i = 0; i < line.size(); i++) {
+        if (line[i] == ' ') {
+            start = i;
+        } else if (line[i] == '^') {
+            end = i;
+            break;
+        }
+    }
+
+    string n = line.substr(start + 1, end - start - 2);
+    cout << "n is " << n;
+
+    int numerica = stoi(n);
     switch (line[pos - 1]) {
         case 'm':
             return numerica * 60;

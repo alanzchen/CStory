@@ -73,12 +73,18 @@ private:
     void handle_line(std::string line, Session session, long &timestamp);
 
     /*
-     * 
+     * setup a message to the session
      */
     void set_up_msg(Session session, long msg_time, std::string content);
 
+    /*
+     * read the contents of scenario
+     */
     int read_next_snr(std::string snr_id);
 
+    /*
+     * read a line
+     */
     void read_line(std::string line, std::string snr_id);
 
     bool judge(std::string ifString, Session session);

@@ -178,7 +178,7 @@ int main() {
                 // create new session in session_map
                 Session * new_session = new Session(session_id,
                                                     story_id,
-                                                    "start", // Story always starts with "start".
+                                                    "go_to_cockpit", // Story always starts with "start".
                                                     endpoint,
                                                     callback,
                                                     mq,

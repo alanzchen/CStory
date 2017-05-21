@@ -54,7 +54,8 @@ struct LocalSession {
         try {
             response = (*this).request("/start", j.dump());
             auto r = json::parse(response);
-            if (r["scenario"] == scenario_id) {
+//            if (r["scenario"] == scenario_id) {
+            if (true) {
                 session_id =  r["session_id"];
             } else {
                 pprint("CStory", "Invalid response from the server:");
