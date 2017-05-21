@@ -68,7 +68,7 @@ private:
     /*
      * the very basic handler
      * in handle_line() the lines will be matched to regex
-     * and 
+     * and decide how to further handle it
      */
     void handle_line(std::string line, Session session, long &timestamp);
 
