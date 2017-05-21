@@ -170,11 +170,11 @@ int Session::generate_msg(nlohmann::json choice_json, long timestamp) {
     return 0;
 }
 
-int Session::ackDelay(int minutes) {
+int Session::ackDelay(int minutes, std::string message) {
     try {
         json j;
         j["session_id"] = session_id;
-        j["content"] = "";
+        j["content"] = message;
         j["scenario_id"] = scenario_id;
         j["choice"] = false;
         j["delay"] = minutes;
