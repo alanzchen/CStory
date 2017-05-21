@@ -62,7 +62,7 @@ void Dialog::setSession(LocalSession * session_) {
 void Dialog::pprint2(QString people, std::string msg) {
     QString qstr;
     qstr = QString::fromStdString(msg);
-    ui->textBrowser->append("<b>" + people + " > </b>" + qstr);
+    if (msg.size() != 0) ui->textBrowser->append("<b>" + people + " > </b>" + qstr);
     ui->textBrowser->moveCursor(QTextCursor::End);
 }
 
