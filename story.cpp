@@ -203,9 +203,7 @@ void Story::handle_set(std::string trigger, Session session) {
     cout << "handle set: " << trigger << endl;
     string var_name = get_var_name(trigger);
     string var_val = get_var_value(trigger);
-    cout << var_name << var_val<< endl;
-//    session.status.emplace(var_name, var_val);
-//    cout << session.status.size() << endl;
+
     session.set_status(var_name, var_val);
 }
 
@@ -213,15 +211,11 @@ void Story::handle_set(std::string trigger, Session session) {
 bool Story::judge(std::string ifString, Session session) {
     string varName = get_var_name(ifString);
     string varValue = get_var_value(ifString);
-<<<<<<< HEAD
     cout << "var name: " << varName << " varVal" << varValue << endl;
-=======
->>>>>>> ec39b6b83677c2ef18da316c1c724ef42efcdbc2
     return session.getStatus(varName) == varValue;
 }
 
 void Story::set_up_msg(Session session, long msg_time, std::string content) {
-//    cout << "Message handled: " << content << " at time: " << msg_time<< endl;
     if (regex_match(content, options_re)) {
         map<string, string> choices = getOptions(content);
         nlohmann::json choice_json(choices);

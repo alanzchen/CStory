@@ -72,6 +72,9 @@ private:
      */
     void handle_line(std::string line, Session session, long &timestamp);
 
+    /*
+     * 
+     */
     void set_up_msg(Session session, long msg_time, std::string content);
 
     int read_next_snr(std::string snr_id);
