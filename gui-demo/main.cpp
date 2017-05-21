@@ -66,7 +66,6 @@
 #include <map>
 #include <vector>
 #include <time.h>
-//#include "dialog.h"
 #include "console_client_thread.h"
 #include <QApplication>
 #include <QtCore/QSettings>

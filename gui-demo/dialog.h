@@ -95,17 +95,7 @@ public:
             //enable the buttons here
             ui->enableButtons();
 
-            //vector<string> choices_vec;//id
-            //vector<string> choices_str_vec;//content
-            //auto vec_it = choices_vec.begin();
-            //auto vec_str_it = choices_str_vec.begin();
-    //            ui->displayWords("CStory> What would you say?\n");
             for (json::iterator it = choices.begin(); it != choices.end(); it++) {
-    //            ui->tempChoice = it.value();
-    //            choices_vec.insert(vec_it, it.key());
-    //            choices_str_vec.insert(vec_str_it, it.value());
-                //vec_it = choices_vec.begin();
-                //vec_str_it = choices_str_vec.begin();
                 if (count==1) {
                     ui->setLBtext(it.value());
                     ui->tempChoice1 = it.value();
@@ -136,13 +126,11 @@ public:
             }
             // disable the buttons here
             ui->disableButtons();
-            //ui->setWindowTitle("Silent Night");
         }
     };
 
     explicit Dialog(QWidget *parent = 0);
     ~Dialog();
-    void getSessionStory();
     void welcomeWords();
     void pprint2(QString people, std::__1::string msg);
     void displayWords(QString str);
@@ -152,8 +140,6 @@ public:
     std::string tempChoiceid1;
     std::string tempChoiceid2;
     LocalSession * session;
-    bool flag1 = false;
-    bool flag2 = false;
 
 public slots:
 

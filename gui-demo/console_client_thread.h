@@ -7,7 +7,6 @@
 #include <QString>
 #include <QMetaType>
 #include <QTextCursor>
-
 #include "dialog.h"
 
 class ConsoleClientThread : public QThread

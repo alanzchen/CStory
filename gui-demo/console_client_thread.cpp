@@ -2,7 +2,6 @@
 
 #include <QDebug>
 
-
 ConsoleClientThread::ConsoleClientThread()
 {
 
