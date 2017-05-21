@@ -30,12 +30,20 @@ regex Story::end_if_re = regex("<<endif>>");
 regex Story::delay_re = regex(".*delay.*");
 regex Story::options_re = regex("\\[\\[.*\\|.*\\]\\].?");
 
+/*
+ * Constructor of Story
+ * take a file path as the input to initialize the story
+ */
 Story::Story(string story_id, string story_file_path) {
     story_input.open(story_file_path);
     this->story_id = story_id;
     initialize();
     story_input.close();
 }
+
+
+    // read the story script from file
+
 
 void Story::initialize() {
     string line;
@@ -45,12 +53,13 @@ void Story::initialize() {
         cerr << "Failed to load story file." << endl;
     }
     while (getline(story_input, line)) {
+
+         // if the line is detected as a id of scenario
+         // use read_next_snr() to read the the scenario
         if (regex_match(line, snr_id_re)) {
             string snr_id = line.substr(3);
             cout << "Handle scenario: " << snr_id << endl;
             read_next_snr(snr_id);
-            for (string s: scenarios[snr_id])
-                cout << s << endl;
         }
     }
 
@@ -62,6 +71,7 @@ int Story::read_next_snr(string snr_id) {
     vector<string> lines;
     scenarios[snr_id] = lines;
     while (getline(story_input, line)) {
+        // if meet empty, scenario end here
         if (line.length() > 0) {
             read_line(line, snr_id);
         } else {
@@ -72,10 +82,14 @@ int Story::read_next_snr(string snr_id) {
 }
 
 
+/*
+ * handle each line and format it or clearning it.
+ */
 void Story::read_line(std::string line, std::string snr_id) {
     stack<char> buffer;
     unsigned int start = 0;
 
+    // use stack to split the expressions out.
     for (unsigned int i = 0; i < line.size(); i++) {
         char c = line[i];
 
@@ -100,6 +114,10 @@ void Story::read_line(std::string line, std::string snr_id) {
     }
 }
 
+/*
+ * check if the story is validated
+ * 
+ */
 void Story::validate() {
     for (map<string, vector<string> >::iterator it = scenarios.begin(); it != scenarios.end(); it++) {
         vector<string> contents = it->second;
