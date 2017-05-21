@@ -62,7 +62,7 @@ public:
 
     int generate_msg(nlohmann::json choice_json, long timestamp);
 
-    int ackDelay(int minutes);
+    int ackDelay(int minutes, std::string message = "");
 
     void sendMessage(Message msg);
 
