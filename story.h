@@ -44,7 +44,7 @@ private:
 
     void handle_set(std::string trigger, Session session);
 
-    int getDelayTime(std::string line, Session session);
+    int getDelayTime(std::string line);
 
     void handle_line(std::string line, Session session, long &timestamp);
 

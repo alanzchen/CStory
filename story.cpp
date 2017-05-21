@@ -27,7 +27,7 @@ regex Story::continue_re = regex("\\[\\[[\\S_]*]]");
 regex Story::if_re = regex("<<.*if .*>>");
 regex Story::else_re = regex("<<else.*>>");
 regex Story::end_if_re = regex("<<endif>>");
-regex Story::delay_re = regex("\\[\\[delay_re .*\\]\\]");
+regex Story::delay_re = regex("delay ^.*");
 regex Story::options_re = regex("\\[\\[.*\\|.*\\]\\].?");
 
 Story::Story(string story_id, string story_file_path) {
@@ -157,11 +157,20 @@ void Story::handle_line(std::string line, Session session, long &timestamp) {
     if (regex_match(line, trigger_re)) {
         handle_set(line, session);
     } else if (regex_match(line, delay_re)) {
-        int delayTime = getDelayTime(line, session);
-        timestamp += delayTime;
-        unsigned index = line.find('^');
-        line = line.substr(index+1);
-        set_up_msg(session, timestamp, line);
+        if (regex_match(line, options_re)){
+            map<string, string> option = getOptions(line);
+            map<string, string>::iterator i = option.begin();
+            string text = i->first;
+            string next_snr = i->second;
+            int delayTime = getDelayTime(text);
+            timestamp + delayTime;
+        } else {
+            int delayTime = getDelayTime(line);
+            timestamp += delayTime;
+            unsigned index = line.find('^');
+            line = line.substr(index+1);
+            set_up_msg(session, timestamp, line);
+        }
     } else if (regex_match(line, continue_re)) {
         cout << "continue_re" << endl;
         process_session(session, line.substr(2, line.size() - 4), timestamp);
@@ -252,7 +261,7 @@ std::string Story::get_var_name(std::string line) {
     return "";
 }
 
-int Story::getDelayTime(std::string line, Session session) {
+int Story::getDelayTime(std::string line) {
     unsigned long pos = line.find('^');
     int numerica = stoi(line.substr(8, pos - 9));
     switch (line[pos - 1]) {
