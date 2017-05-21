@@ -40,7 +40,7 @@ void ConsoleClientThread::startrun(Dialog *ui_)
                     ui_->pprint2("Taylor", j["content"].get<string>());  // show message to the console
                 } else if (j["type"].get<string>() == "delay") {                      // this is a delay
                     if (j["content"].get<string>().size() > 0) {
-                        ui_->pprint2("CStory", j["content"].get<string>());
+                        ui_->pprint2("CStory", "<i>" + j["content"].get<string>() + "</i>");
                     } else {
                         ui_->pprint2("CStory", "Taylor will get back to you in a while.");
                     }
