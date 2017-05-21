@@ -4,7 +4,6 @@
 
 #include "story.h"
 #include <random>
-#include <json.hpp>
 #include <boost/algorithm/string.hpp>
 
 void negBool(bool &target) {
@@ -116,7 +115,8 @@ void Story::read_line(std::string line, std::string snr_id) {
 
 /*
  * check if the story is validated
- * 
+ * avoid the problem such as duplicate scenario ID
+ * or no scenraio ID found but it's a target of some other scenario
  */
 void Story::validate() {
     for (map<string, vector<string> >::iterator it = scenarios.begin(); it != scenarios.end(); it++) {
@@ -141,6 +141,10 @@ void Story::validate() {
     }
 }
 
+
+/*
+ * main.cpp will invoke this function and pass a session into it
+ */
 void Story::process_session(Session &session, string snr_id, long tm) {
     cout << "Processing session " << session.getSession_id() << endl;
     bool status = true;
@@ -183,6 +187,11 @@ void Story::process_session(Session &session, string snr_id, long tm) {
     }
 }
 
+/*
+ * processing the player's game line by line
+ * detect if there are delay, value updates or if-expression
+ * and setup the messages for session
+ */
 void Story::handle_line(std::string line, Session session, long &timestamp) {
     timestamp += line.size() / 30;
     if (regex_match(line, trigger_re)) {
@@ -219,7 +228,9 @@ void Story::handle_line(std::string line, Session session, long &timestamp) {
     }
 }
 
-
+/*
+ * update status of a session
+ */
 void Story::handle_set(std::string trigger, Session session) {
     cout << "handle set: " << trigger << endl;
     string var_name = get_var_name(trigger);
@@ -228,14 +239,18 @@ void Story::handle_set(std::string trigger, Session session) {
     session.set_status(var_name, var_val);
 }
 
-
+/*
+ * check is a if-statement is satisfied
+ */
 bool Story::judge(std::string ifString, Session session) {
     string varName = get_var_name(ifString);
     string varValue = get_var_value(ifString);
-    cout << "var name: " << varName << " varVal" << varValue << endl;
     return session.getStatus(varName) == varValue;
 }
 
+/*
+ * set message for a session
+ */
 void Story::set_up_msg(Session session, long msg_time, std::string content) {
     if (regex_match(content, options_re)) {
         map<string, string> choices = getOptions(content);
@@ -246,6 +261,13 @@ void Story::set_up_msg(Session session, long msg_time, std::string content) {
     }
 }
 
+/*
+ * get all options from an choice script
+ * return a map, the key is the text to be display
+ * and value is the id of the corresponding scenario
+ *
+ * use stack as a buffer to split specific part out
+ */
 std::map<std::string, std::string> Story::getOptions(std::string line) {
     stack<char> buffer;
     map<string, string> result;
@@ -268,6 +290,9 @@ std::map<std::string, std::string> Story::getOptions(std::string line) {
     return result;
 }
 
+/*
+ * analyze the options and put the result in given map
+ */
 void Story::translateOptions(std::map<std::string, std::string> &target, std::string line) {
     unsigned long index = line.find('|');
     string display = line.substr(2, index - 2);
@@ -275,7 +300,9 @@ void Story::translateOptions(std::map<std::string, std::string> &target, std::st
     target[key] = display;
 }
 
-
+/*
+ * get the variable name in an set-statement or if-statement
+ */
 std::string Story::get_var_value(std::string line) {
     unsigned long i = line.size() - 2;
     do {
@@ -288,6 +315,9 @@ std::string Story::get_var_value(std::string line) {
     return value;
 }
 
+/*
+ * get the variable value in an set-statement or if-statement
+ */
 std::string Story::get_var_name(std::string line) {
     int start = -1;
     for (int i = 0; i < line.size(); i++) {
@@ -301,6 +331,10 @@ std::string Story::get_var_name(std::string line) {
     return "";
 }
 
+/*
+ * calculate how long should the message be delayed
+ * according to a delay-statement
+ */
 int Story::getDelayTime(std::string line) {
     unsigned long pos = line.find('^');
     int start = 0, end = 0;
@@ -315,7 +349,6 @@ int Story::getDelayTime(std::string line) {
     }
 
     string n = line.substr(start + 1, end - start - 2);
-    cout << "n is " << n;
 
     int numerica = stoi(n);
     switch (line[pos - 1]) {
@@ -328,10 +361,16 @@ int Story::getDelayTime(std::string line) {
     }
 }
 
+/*
+ * getter of id
+ */
 std::string Story::getStoryID() {
     return story_id;
 }
 
+/*
+ * get the validate status of the story
+ */
 bool Story::isValidated() {
     return validated;
 }
