@@ -134,8 +134,6 @@ public:
                 string str(e.what());
                 ui->pprint2("CStory", "Error: " + str);
             }
-
-
             // disable the buttons here
             ui->disableButtons();
             //ui->setWindowTitle("Silent Night");

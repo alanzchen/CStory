@@ -66,6 +66,8 @@ public:
 
     void sendMessage(Message msg);
 
+    void sendMessage(nlohmann::json choice_json);
+
     int handle_reply(std::string choice);
 
     nlohmann::json to_json();

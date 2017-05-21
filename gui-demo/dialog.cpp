@@ -2,6 +2,7 @@
 #include "ui_dialog.h"
 #include <iostream>
 #include <QPushButton>
+#include <QScrollBar>
 //#include "console_client_thread.h"
 #include <QApplication>
 #include <QtCore/QSettings>
@@ -68,8 +69,10 @@ void Dialog::setSession(LocalSession * session_) {
 
 void Dialog::pprint2(QString people, std::string msg) {
     QString qstr;
+    QScrollBar *sb = ui->textEdit->verticalScrollBar();
     qstr = QString::fromStdString(msg);
     ui->textEdit->append("<b>" + people + " > </b>" + qstr);
+    sb->setValue(sb->maximum());
 }
 
 void Dialog::on_button1_clicked()

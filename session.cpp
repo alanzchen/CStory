@@ -61,6 +61,7 @@ int Session::handle_reply(std::string choice) {
     // 2. Get the messages to send.
     // 3. Send the messages.
     scenario_id = choice;
+    cout << "Handling choice for session " << this->session_id << " " << choice << endl;
     (*story_pool)[story_id]->process_session(*this);
     return 0;
 }
@@ -140,16 +141,27 @@ void Session::sendMessage(Message msg) {
     }
 }
 
+void Session::sendMessage(nlohmann::json choice_json) {
+    HttpClient client(callback);
+    json j;
+    j["session_id"] = session_id;
+    j["content"] = "";
+    j["scenario_id"] = scenario_id;
+    j["choice"] = true;
+    j["choices"] = choice_json;
+    string json_string= j.dump();
+    try {
+        auto response=client.request("POST", endpoint, json_string); // The endpoint should always ends with /json
+        cout << "Message sent to " << callback << endpoint << " with the following reply:" << endl;
+        cout << response->status_code << endl;
+    } catch(exception &e) {
+        cout << "Error: sendMessage generates the following exception:" << endl << e.what() << endl;
+    }
+}
+
 int Session::generate_msg(nlohmann::json choice_json, long timestamp) {
     try {
-        json j;
-        j["session_id"] = session_id;
-        j["content"] = "";
-        j["scenario_id"] = scenario_id;
-        j["choice"] = true;
-        j["choices"] = choice_json;
-        string content = j.dump();
-        Message msg(content, timestamp, callback, session_id);
+        Message msg(choice_json.dump(), timestamp, callback, session_id, true);
         (*mq).push(msg);
     } catch (exception e) {
         cout << "Error when getting a a value in the status dictionary." << e.what() << endl;

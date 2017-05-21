@@ -60,7 +60,7 @@ private:
 
     void validate();
 
-    void translateOptions(std::map<std::string, std::string> target, std::string line);
+    void translateOptions(std::map<std::string, std::string> & target, std::string line);
 public:
 
     Story(std::string story_id, std::string story_file_path);

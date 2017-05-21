@@ -101,7 +101,7 @@ struct LocalSession {
                 if (choice_int > choices_vec.size() || choice_int < 1) {
                     throw(runtime_error("invalid choice_id"));
                 }
-                choice_id = choices_vec[choice_int - 1];
+                choice_id = choices_vec.at(choice_int);
                 not_chosen = false;
             } catch (exception e) {
                 cout << "Oops I can't hear you, can you repeat again?" << endl << "Reply: ";
@@ -111,10 +111,15 @@ struct LocalSession {
         pprint("You", choices[choice_id]);
         json j;
         j["session_id"] = session_id;
-        j["choice"] = choices[choice_id];
+        j["choice"] = choice_id;
         choices = json();
         connection = new HttpClient(game_server);
-        (*this).request("/start", j.dump());
+        try {
+            (*this).request("/json", j.dump());
+        } catch (exception &e) {
+            string str(e.what());
+            pprint("CStory", "Error: " + str);
+        }
     };
 
 
