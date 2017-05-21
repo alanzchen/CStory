@@ -127,8 +127,8 @@ void Session::sendMessage(Message msg) {
     j["session_id"] = msg.get_session_id();
     j["content"] = msg.get_content();
     j["scenario_id"] = scenario_id;
-    j["choice"] = false;
-    string json_string= j.dump();
+    j["type"] = "message";
+    string json_string = j.dump();
     try {
         auto response=client.request("POST", endpoint, json_string); // The endpoint should always ends with /json
         cout << "Message sent to " << callback << endpoint << " with the following reply:" << endl;
@@ -138,27 +138,39 @@ void Session::sendMessage(Message msg) {
     }
 }
 
-void Session::sendMessage(nlohmann::json choice_json) {
+void Session::sendChoice(nlohmann::json choice_json) {
     HttpClient client(callback);
     json j;
     j["session_id"] = session_id;
     j["content"] = "";
     j["scenario_id"] = scenario_id;
-    j["choice"] = true;
+    j["type"] = "choice";
     j["choices"] = choice_json;
     string json_string= j.dump();
     try {
         auto response=client.request("POST", endpoint, json_string); // The endpoint should always ends with /json
-        cout << "Message sent to " << callback << endpoint << " with the following reply:" << endl;
+        cout << "Choice sent to " << callback << endpoint << " with the following reply:" << endl;
         cout << response->status_code << endl;
     } catch(exception &e) {
-        cout << "Error: sendMessage generates the following exception:" << endl << e.what() << endl;
+        cout << "Error: sendChoice generates the following exception:" << endl << e.what() << endl;
+    }
+}
+
+void Session::sendDelay(nlohmann::json delay_json) {
+    HttpClient client(callback);
+    string json_string= delay_json.dump();
+    try {
+        auto response=client.request("POST", endpoint, json_string); // The endpoint should always ends with /json
+        cout << "Delay sent to " << callback << endpoint << " with the following reply:" << endl;
+        cout << response->status_code << endl;
+    } catch(exception &e) {
+        cout << "Error: sendDelay generates the following exception:" << endl << e.what() << endl;
     }
 }
 
 int Session::generate_msg(nlohmann::json choice_json, long timestamp) {
     try {
-        Message msg(choice_json.dump(), timestamp, callback, session_id, true);
+        Message msg(choice_json.dump(), timestamp, callback, session_id, "choice");
         (*mq).push(msg);
     } catch (exception e) {
         cout << "Error when getting a a value in the status dictionary." << e.what() << endl;
@@ -173,10 +185,10 @@ int Session::ackDelay(int minutes, long timestamp, std::string message) {
         j["session_id"] = session_id;
         j["content"] = message;
         j["scenario_id"] = scenario_id;
-        j["choice"] = false;
+        j["type"] = "delay";
         j["delay"] = minutes;
         string content = j.dump();
-        Message msg(content, timestamp, callback, session_id);
+        Message msg(content, timestamp, callback, session_id, "delay");
         (*mq).push(msg);
         return 0;
     } catch (exception e) {

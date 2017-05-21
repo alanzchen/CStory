@@ -20,12 +20,12 @@
 class Message {
 
 public:
-    Message(std::string message_, long times, std::string url_, std::string sessionID, bool is_choice = false); //directly use string for temporary message storing.
+    Message(std::string message_, long times, std::string url_, std::string sessionID, std::string type = "message"); //directly use string for temporary message storing.
     std::string get_content() const;
     std::string get_session_id() const;
     long get_time() const;
     const std::string &getUrl() const;
-
+    std::string type;
     bool isChoice() const;
 
 private:

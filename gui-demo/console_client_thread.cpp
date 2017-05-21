@@ -36,9 +36,15 @@ void ConsoleClientThread::startrun(Dialog *ui_)
                 if (j["session_id"] != session.session_id) {
                     throw(std::runtime_error("Invalid session_id."));
                 }
-                if (!j["choice"].get<bool>()) {
+                if (j["type"].get<string>() == "message") {
                     ui_->pprint2("Taylor", j["content"].get<string>());  // show message to the console
-                } else {                                                 // this is a choice
+                } else if (j["type"].get<string>() == "delay") {                      // this is a delay
+                    if (j["content"].get<string>().size() > 0) {
+                        ui_->pprint2("CStory", j["content"].get<string>());
+                    } else {
+                        ui_->pprint2("CStory", "Taylor will get back to you in a while.");
+                    }
+                } else {
                     current_choices = j["choices"];
                     cout << current_choices;
                 }
