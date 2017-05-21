@@ -164,8 +164,8 @@ void Story::set_up_msg(Session session, long msg_time, std::string content) {
 //    cout << "Message handled: " << content << " at time: " << msg_time<< endl;
     if (regex_match(content, options)) {
         map<string, string> choices = getOptions(content);
-        nlohmann::json choice_json;
-
+        nlohmann::json choice_json(choices);
+        session.generate_msg(choice_json, msg_time);
     } else {
         session.generate_msg(content, msg_time);
     }
@@ -193,7 +193,7 @@ std::map<std::string, std::string> Story::getOptions(std::string line) {
     return result;
 }
 
-void Story::translateOptions(std::map<std::string, std::string> target, std::string line) {
+void Story::translateOptions(std::map<std::string, std::string> & target, std::string line) {
     unsigned long index = line.find('|');
     string display =  line.substr(2, index - 2);
     string key = line.substr(index+1, line.size() - index - 3);

@@ -305,7 +305,12 @@ int main() {
                 // Send the message and pop the first
                 current_session_id = (*mq).top().get_session_id();
                 Session *current_session = & (*sessions).at(current_session_id);
-                (*current_session).sendMessage((*mq).top());
+                if ((*mq).top().isChoice()) {
+                    json j = json::parse((*mq).top().get_content());
+                    (*current_session).sendMessage(j);
+                } else { // this is a regular message
+                    (*current_session).sendMessage((*mq).top());
+                }
                 (*mq).pop();
             } else {
                 boost::this_thread::sleep(boost::posix_time::milliseconds(10));

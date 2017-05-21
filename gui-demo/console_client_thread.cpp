@@ -39,9 +39,10 @@ void ConsoleClientThread::startrun(Dialog *ui_)
                 }
                 if (!j["choice"].get<bool>()) {
                     ui_->pprint2("Taylor", j["content"].get<string>());  // show message to the console
-                    cout<<"test1";
-                } else {                                                   // this is a choice
+                } else {                                                 // this is a choice
                     current_choices = j["choices"];
+                    cout << current_choices;
+                    cout << "meow" << endl;
                 }
                 session.scenario_id = j["scenario_id"].get<string>();
 
