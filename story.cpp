@@ -3,6 +3,8 @@
 //
 
 #include "story.h"
+#include <random>
+#include <json.hpp>
 #include <boost/algorithm/string.hpp>
 
 void negBool(bool &target) {
@@ -26,6 +28,7 @@ regex Story::if_statement = regex("<<.*if .*>>");
 regex Story::else_statement = regex("<<else.*>>");
 regex Story::end_if = regex("<<endif>>");
 regex Story::delay = regex("\\[\\[delay .*\\]\\]");
+regex Story::options = regex("\\[\\[.*\\|.*\\]\\].?");
 
 Story::Story(string story_id, string story_file_path) {
     story_input.open(story_file_path);
@@ -96,7 +99,7 @@ void Story::read_line(std::string line, std::string snr_id) {
     }
 }
 
-void Story::process_session(Session session, string snr_id, long tm ) {
+void Story::process_session(Session session, string snr_id, long tm) {
     bool status = true;
     if (snr_id == "") {
         snr_id = session.getScenario_id();
@@ -125,13 +128,13 @@ void Story::process_session(Session session, string snr_id, long tm ) {
 }
 
 void Story::handle_line(std::string line, Session session, long &timestamp) {
-    timestamp += 3;
+    timestamp += line.size() / 30;
     if (regex_match(line, trigger_re)) {
         handle_set(line, session);
     } else if (regex_match(line, delay)) {
         int delayTime = getDelayTime(line, session);
         timestamp += delayTime;
-        set_up_msg(session,timestamp,line);
+        set_up_msg(session, timestamp, line);
     } else if (regex_match(line, continue_re)) {
         process_session(session, line.substr(2, line.size() - 4), timestamp);
     } else {
@@ -158,8 +161,17 @@ bool Story::judge(std::string ifString, Session session) {
 }
 
 void Story::set_up_msg(Session session, long msg_time, std::string content) {
-//    cout << "Message set: " << content << " at time: " << msg_time<< endl;
-    session.generate_msg(content, msg_time);
+//    cout << "Message handled: " << content << " at time: " << msg_time<< endl;
+    if (regex_match(content, options)) {
+        map<string, string> choices;
+        translateOptions(choices, content);
+        nlohmann::json choice_json;
+
+
+
+    } else {
+        session.generate_msg(content, msg_time);
+    }
 }
 
 std::string Story::get_var_value(std::string line) {
@@ -167,7 +179,11 @@ std::string Story::get_var_value(std::string line) {
     do {
         i--;
     } while (line[i] != ' ');
-    return line.substr(i + 1, line.size() - i - 3);
+    string value = line.substr(i + 1, line.size() - i - 3);
+    if (value[0] == '"') {
+        value = value.substr(1, value.size() - 2);
+    }
+    return value;
 }
 
 std::string Story::get_var_name(std::string line) {
@@ -182,7 +198,6 @@ std::string Story::get_var_name(std::string line) {
     }
     return "";
 }
-
 
 
 int Story::getDelayTime(std::string line, Session session) {
@@ -202,13 +217,30 @@ std::string Story::getStoryID() {
     return story_id;
 }
 
-std::vector<std::string> Story::getOptions(std::string line) {
-    unsigned long index = line.find(" | ");
-    vector<string> results;
-    results.push_back(line.substr(0, index));
-    results.push_back(line.substr(index+2));
+std::map<std::string, std::string> Story::getOptions(std::string line) {
+    stack<char> buffer;
+    map<string, string> result;
+    unsigned int start = 0;
+    for (unsigned int i = 0; i < line.size(); i++) {
+        char c = line[i];
+        if (c == '[') {
+            if (buffer.size() == 0) {
+                start = i;
+            }
+            buffer.push(c);
+        } else if (c == ']') {
+            buffer.pop();
+            if (buffer.size() == 0) {
+                translateOptions(result, line.substr(start, i - start + 1));
+            }
+        }
+    }
 
-    return results;
+    return result;
+}
+
+void Story::translateOptions(std::map<std::string, std::string> target, std::string line) {
+
 }
 
 

@@ -33,14 +33,13 @@ private:
     static std::regex if_statement;
     static std::regex else_statement;
     static std::regex end_if;
+    static std::regex options;
 
     std::ifstream story_input;
 
     std::string get_var_name(std::string line);
 
     std::string get_var_value(std::string line);
-
-//    void handle_if(int & i, std::vector<std::string> content, Session session);
 
     void handle_set(std::string trigger, Session session);
 
@@ -56,9 +55,11 @@ private:
 
     bool judge(std::string ifString, Session session);
 
-    std::vector<std::string> getOptions(std::string line);
+    std::map<std::string, std::string> getOptions(std::string line);
 
     bool validate();
+
+    void translateOptions(std::map<std::string, std::string> target, std::string line);
 public:
 
     Story(std::string story_id, std::string story_file_path);
@@ -66,6 +67,8 @@ public:
     std::string getStoryID();
 
     int initialize();
+
+    bool isValidated();
 
     void process_session(Session session, std::string snr_id = "", long tm = getCurrentTime());
 };
