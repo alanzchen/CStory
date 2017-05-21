@@ -81,12 +81,10 @@ struct LocalSession {
     void choose(json &choices) {
         int count = 1;
         vector<string> choices_vec;
-        auto vec_it = choices_vec.begin();
         pprint("CStory", "What would you say?");
         for (json::iterator it = choices.begin(); it != choices.end(); ++it) {
             std::cout << count << " : " << it.value() << "\n"; // it.value is the text for the buttons
-            choices_vec.insert(vec_it, it.key());
-            vec_it = choices_vec.begin();
+            choices_vec.push_back(it.key());
             ++count;
         }
         cout << "Reply: ";
@@ -101,7 +99,7 @@ struct LocalSession {
                 if (choice_int > choices_vec.size() || choice_int < 1) {
                     throw(runtime_error("invalid choice_id"));
                 }
-                choice_id = choices_vec.at(choice_int);
+                choice_id = choices_vec.at(choice_int - 1);
                 not_chosen = false;
             } catch (exception e) {
                 cout << "Oops I can't hear you, can you repeat again?" << endl << "Reply: ";
@@ -160,6 +158,8 @@ int main() {
             }
             if (!j["choice"].get<bool>()) {
                 pprint("Taylor", j["content"].get<string>()); // show message to the console
+            } else if (!j["delay"].is_null()) {
+                pprint("CStory", "Taylor will get back to you in a while.");
             } else { // this is a choice
                 current_choices = j["choices"];
             }
