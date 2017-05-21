@@ -195,7 +195,7 @@ void Story::handle_set(std::string trigger, Session session) {
 bool Story::judge(std::string ifString, Session session) {
     string varName = get_var_name(ifString);
     string varValue = get_var_value(ifString);
-    return session.getStatus().at(varName) == varValue;
+    return session.getStatus(varName) == varValue;
 }
 
 void Story::set_up_msg(Session session, long msg_time, std::string content) {

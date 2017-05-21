@@ -21,6 +21,7 @@ Session::Session(std::string session_id_, std::string story_id_, std::string sce
     endpoint = endpoint_;
     mq = mq_;
     story_pool = story_pool_;
+    status = new std::map <std::string, std::string>;
     cout << "Successfully created session with id = " << session_id << endl;
 }
 
@@ -45,7 +46,7 @@ nlohmann::json Session::to_json() {
     try {
         j["session_id"] = session_id;
         j["story_id"] = story_id;
-        j["status"] = status;
+        j["status"] = (*status);
         j["scenario"] = scenario_id;
         j["callback"] = callback;
         j["endpoint"] = endpoint;
@@ -68,7 +69,8 @@ int Session::handle_reply(std::string choice) {
 
 int Session::set_status(std::string key, std::string value) {
     try {
-        status[key] = value;
+        (*status)[key] = value;
+        cout << (*status).size() << endl;
     } catch(exception e) {
         cout << "Error when setting status in a session: " << e.what() << endl;
         return 1;
@@ -80,14 +82,10 @@ const string &Session::getScenario_id() const {
     return scenario_id;
 }
 
-const map<string, string> &Session::getStatus() const {
-    return status;
-}
-
 const std::string &Session::getStatus(std::string var) const {
     std::string val = "false";
     try {
-        val = status.at(var);
+        val = (*status).at(var);
     } catch (exception e) {
         cout << "Error when getting a a value in the status dictionary." << e.what() << endl;
     }
