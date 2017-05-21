@@ -25,15 +25,16 @@ long getCurrentTime();
 class Story {
 private:
     std::string story_id;
+    bool validated = true;
     std::map<std::string, std::vector<std::string>> scenarios;
-    static std::regex snr_id_re;//:: old_poem_test
-    static std::regex trigger_re;
+    static std::regex snr_id_re; // :: old_poem_test
+    static std::regex trigger_re; // <<set $var = value>>
     static std::regex continue_re;// [[shiny_interest]]
-    static std::regex delay; // [[delay 30s|more_alive]]
-    static std::regex if_statement;
-    static std::regex else_statement;
-    static std::regex end_if;
-    static std::regex options;
+    static std::regex delay_re; // [[delay_re 30s|more_alive]]
+    static std::regex if_re; // <<if $var == value>>
+    static std::regex else_re; // <<else>>
+    static std::regex end_if_re; // <<else if &var == value>>
+    static std::regex options_re; // [[option 1|text]] | [[option 2|text]]
 
     std::ifstream story_input;
 
@@ -57,7 +58,7 @@ private:
 
     std::map<std::string, std::string> getOptions(std::string line);
 
-    bool validate();
+    void validate();
 
     void translateOptions(std::map<std::string, std::string> target, std::string line);
 public:
@@ -66,7 +67,7 @@ public:
 
     std::string getStoryID();
 
-    int initialize();
+    void initialize();
 
     bool isValidated();
 

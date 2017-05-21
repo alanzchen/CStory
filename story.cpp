@@ -24,11 +24,11 @@ using namespace std;
 regex Story::snr_id_re = regex(":: .*");
 regex Story::trigger_re = regex("<<set .*>>");
 regex Story::continue_re = regex("\\[\\[[\\S_]*]]");
-regex Story::if_statement = regex("<<.*if .*>>");
-regex Story::else_statement = regex("<<else.*>>");
-regex Story::end_if = regex("<<endif>>");
-regex Story::delay = regex("\\[\\[delay .*\\]\\]");
-regex Story::options = regex("\\[\\[.*\\|.*\\]\\].?");
+regex Story::if_re = regex("<<.*if .*>>");
+regex Story::else_re = regex("<<else.*>>");
+regex Story::end_if_re = regex("<<endif>>");
+regex Story::delay_re = regex("\\[\\[delay_re .*\\]\\]");
+regex Story::options_re = regex("\\[\\[.*\\|.*\\]\\].?");
 
 Story::Story(string story_id, string story_file_path) {
     story_input.open(story_file_path);
@@ -37,7 +37,7 @@ Story::Story(string story_id, string story_file_path) {
     story_input.close();
 }
 
-int Story::initialize() {
+void Story::initialize() {
     string line;
     if (story_input.is_open()) {
         cout << "Story file opened successfully." << endl;
@@ -53,7 +53,8 @@ int Story::initialize() {
                 cout << s << endl;
         }
     }
-    return 0;
+
+    validate();
 }
 
 int Story::read_next_snr(string snr_id) {
@@ -73,9 +74,9 @@ int Story::read_next_snr(string snr_id) {
 
 void Story::read_line(std::string line, std::string snr_id) {
     stack<char> buffer;
-    int start = 0;
+    unsigned int start = 0;
 
-    for (int i = 0; i < line.size(); i++) {
+    for (unsigned int i = 0; i < line.size(); i++) {
         char c = line[i];
 
         if (c == '<') {
@@ -99,6 +100,29 @@ void Story::read_line(std::string line, std::string snr_id) {
     }
 }
 
+void Story::validate() {
+    for (map<string, vector<string> >::iterator it = scenarios.begin(); it != scenarios.end(); it++) {
+        vector<string> contents = it->second;
+        if (contents.size() == 0)
+            validated = false;
+        string end = contents[contents.size() - 1];
+        if (regex_match(end, options_re)) {
+            map<string, string> options = getOptions(end);
+            for (map<string, string>::iterator opt = options.begin(); opt != options.end(); opt++) {
+                string option = opt->second;
+                if (!scenarios.count(option)) {
+                    validated = false;
+                }
+            }
+        } else if (regex_match(end, continue_re)) {
+            string option = end.substr(2, end.size() - 4);
+            if (!scenarios.count(option)) {
+                validated = false;
+            }
+        }
+    }
+}
+
 void Story::process_session(Session session, string snr_id, long tm) {
     bool status = true;
     if (snr_id == "") {
@@ -107,17 +131,17 @@ void Story::process_session(Session session, string snr_id, long tm) {
     vector<string> messages = scenarios[snr_id];
     for (int i = 0; i < messages.size(); i++) {
         string line = messages[i];
-        if (regex_match(line, if_statement)) {
+        if (regex_match(line, if_re)) {
             status = judge(line, session);
             continue;
-        } else if (regex_match(line, else_statement)) {
-            if (regex_match(line, if_statement)) {
+        } else if (regex_match(line, else_re)) {
+            if (regex_match(line, if_re)) {
                 status = judge(line, session);
             } else {
                 negBool(status);
             }
             continue;
-        } else if (regex_match(line, end_if)) {
+        } else if (regex_match(line, end_if_re)) {
             status = true;
             continue;
         }
@@ -131,19 +155,19 @@ void Story::handle_line(std::string line, Session session, long &timestamp) {
     timestamp += line.size() / 30;
     if (regex_match(line, trigger_re)) {
         handle_set(line, session);
-    } else if (regex_match(line, delay)) {
+    } else if (regex_match(line, delay_re)) {
         int delayTime = getDelayTime(line, session);
         timestamp += delayTime;
+        unsigned index = line.find('^');
+        line = line.substr(index+1);
         set_up_msg(session, timestamp, line);
     } else if (regex_match(line, continue_re)) {
         process_session(session, line.substr(2, line.size() - 4), timestamp);
+    } else if (regex_match(line, options_re)){
+        set_up_msg(session, timestamp - line.size()/30, line);
     } else {
         set_up_msg(session, timestamp, line);
     }
-}
-
-bool Story::validate() {
-    return false;
 }
 
 
@@ -162,7 +186,7 @@ bool Story::judge(std::string ifString, Session session) {
 
 void Story::set_up_msg(Session session, long msg_time, std::string content) {
 //    cout << "Message handled: " << content << " at time: " << msg_time<< endl;
-    if (regex_match(content, options)) {
+    if (regex_match(content, options_re)) {
         map<string, string> choices = getOptions(content);
         nlohmann::json choice_json;
 
@@ -195,8 +219,8 @@ std::map<std::string, std::string> Story::getOptions(std::string line) {
 
 void Story::translateOptions(std::map<std::string, std::string> target, std::string line) {
     unsigned long index = line.find('|');
-    string display =  line.substr(2, index - 2);
-    string key = line.substr(index+1, line.size() - index - 3);
+    string display = line.substr(2, index - 2);
+    string key = line.substr(index + 1, line.size() - index - 3);
     target[key] = display;
 }
 
@@ -225,6 +249,7 @@ std::string Story::get_var_name(std::string line) {
     }
     return "";
 }
+
 int Story::getDelayTime(std::string line, Session session) {
     unsigned long pos = line.find('^');
     int numerica = stoi(line.substr(8, pos - 9));
@@ -242,6 +267,7 @@ std::string Story::getStoryID() {
     return story_id;
 }
 
-
-
+bool Story::isValidated() {
+    return validated;
+}
 
