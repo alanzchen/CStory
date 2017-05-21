@@ -123,7 +123,7 @@ void Story::validate() {
     }
 }
 
-void Story::process_session(Session session, string snr_id, long tm) {
+void Story::process_session(Session &session, string snr_id, long tm) {
     cout << "Processing session " << session.getSession_id() << endl;
     bool status = true;
     if (snr_id == "") {
@@ -133,11 +133,24 @@ void Story::process_session(Session session, string snr_id, long tm) {
     for (int i = 0; i < messages.size(); i++) {
         string line = messages[i];
         if (regex_match(line, if_re)) {
+            cout << "handle if statement: " << line;
             status = judge(line, session);
+            if (status) {
+                cout << " satisfied" << endl;
+            } else {
+                cout << " unsatisfied" << endl;
+            }
             continue;
         } else if (regex_match(line, else_re)) {
+            cout << "handle else statement: " << line << endl;
             if (regex_match(line, if_re)) {
+                cout << "handle if statement: " << line;
                 status = judge(line, session);
+                if (status) {
+                    cout << " satisfied" << endl;
+                } else {
+                    cout << "unsatisfied" << endl;
+                }
             } else {
                 negBool(status);
             }
@@ -155,30 +168,31 @@ void Story::process_session(Session session, string snr_id, long tm) {
 void Story::handle_line(std::string line, Session session, long &timestamp) {
     timestamp += line.size() / 30;
     if (regex_match(line, trigger_re)) {
+        timestamp -= line.size() / 30;
         handle_set(line, session);
     } else if (regex_match(line, delay_re)) {
-        if (regex_match(line, options_re)){
+        if (regex_match(line, options_re)) {
             map<string, string> option = getOptions(line);
             map<string, string>::iterator i = option.begin();
             string text = i->first;
             string next_snr = i->second;
             int delayTime = getDelayTime(text);
-            timestamp +=delayTime;
+            timestamp += delayTime;
             int index = line.find('^');
-            session.ackDelay(delayTime/60, line.substr(index+1) );
-            process_session(session,next_snr,timestamp);
+            session.ackDelay(delayTime / 60, line.substr(index + 1));
+            process_session(session, next_snr, timestamp);
         } else {
             int delayTime = getDelayTime(line);
             timestamp += delayTime;
             unsigned index = line.find('^');
-            line = line.substr(index+1);
+            line = line.substr(index + 1);
             set_up_msg(session, timestamp, line);
         }
     } else if (regex_match(line, continue_re)) {
-        cout << "continue_re" << endl;
+        cout << "continue_re" << line << endl;
         process_session(session, line.substr(2, line.size() - 4), timestamp);
-    } else if (regex_match(line, options_re)){
-        set_up_msg(session, timestamp - line.size()/30, line);
+    } else if (regex_match(line, options_re)) {
+        set_up_msg(session, timestamp - line.size() / 30, line);
     } else {
         set_up_msg(session, timestamp, line);
     }
@@ -186,8 +200,12 @@ void Story::handle_line(std::string line, Session session, long &timestamp) {
 
 
 void Story::handle_set(std::string trigger, Session session) {
+    cout << "handle set: " << trigger << endl;
     string var_name = get_var_name(trigger);
     string var_val = get_var_value(trigger);
+    cout << var_name << var_val<< endl;
+//    session.status.emplace(var_name, var_val);
+//    cout << session.status.size() << endl;
     session.set_status(var_name, var_val);
 }
 
@@ -195,7 +213,8 @@ void Story::handle_set(std::string trigger, Session session) {
 bool Story::judge(std::string ifString, Session session) {
     string varName = get_var_name(ifString);
     string varValue = get_var_value(ifString);
-    return session.getStatus().at(varName) == varValue;
+    cout << "var name: " << varName << " varVal" << varValue << endl;
+    return session.getStatus(varName) == varValue;
 }
 
 void Story::set_up_msg(Session session, long msg_time, std::string content) {
@@ -231,7 +250,7 @@ std::map<std::string, std::string> Story::getOptions(std::string line) {
     return result;
 }
 
-void Story::translateOptions(std::map<std::string, std::string> & target, std::string line) {
+void Story::translateOptions(std::map<std::string, std::string> &target, std::string line) {
     unsigned long index = line.find('|');
     string display = line.substr(2, index - 2);
     string key = line.substr(index + 1, line.size() - index - 3);
