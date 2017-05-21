@@ -58,15 +58,11 @@ public:
 
     void setStory_pool(const std::shared_ptr<std::map<std::string, Story *>> &story_pool);
 
-    /*
-     * @ param content: the content of this message
-     * @ timestamp: time to send this msg, unit: second
-     * TODO: generate a Message object using the given parameters and target url
-     */
-
     int generate_msg(std::string content, long timestamp);
 
     int generate_msg(nlohmann::json choice_json, long timestamp);
+
+    int ackDelay(int minutes);
 
     void sendMessage(Message msg);
 

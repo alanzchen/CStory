@@ -37,34 +37,8 @@ private:
 struct CompareTimestamp {
     bool operator()(Message const & p1, Message const & p2) {
         // return "true" if "p1" is ordered before "p2", for example:
-        return p1.get_time() < p2.get_time();
+        return p1.get_time() > p2.get_time();
     }
 };
 
 #endif // MESSAGE_H
-
-
-/* Below is something not sure. Could be reference.
-
-using message_pair = std::pair<long timestamp, std::string session_id>;
-using msg_container = std::vector<message_pair>;
-
-std::priority_queue<message_pair,
-                    msg_container,
-                    decltype(timestamp)> queue(timestamp);
-
-
-bool time_comp = [](const message_pair& m1, const message_pair& m2);  //directly compare, no need this.
-
-
-class mycomparison{          //http://www.cplusplus.com/reference/queue/priority_queue/priority_queue/
-    bool reverse;
-
-public:
-    mycomparison(const bool& revparam=false) {reverse=revparam;}
-    bool operator() (const int& lhs, const int&rhs) const{
-        if (reverse) return (lhs>rhs);
-        else return (lhs<rhs);
-    }
-};
-*/

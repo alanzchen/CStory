@@ -157,3 +157,19 @@ int Session::generate_msg(nlohmann::json choice_json, long timestamp) {
     cout << "Session " << (*this).getSession_id() << ": added a message to MQ: " << choice_json.dump() << endl;
     return 0;
 }
+
+int Session::ackDelay(int minutes) {
+    try {
+        json j;
+        j["session_id"] = session_id;
+        j["content"] = "";
+        j["scenario_id"] = scenario_id;
+        j["choice"] = false;
+        j["delay"] = minutes;
+        string content = j.dump();
+        Message msg(content, 0, callback, session_id);
+        sendMessage(msg);
+    } catch (exception e) {
+        cout << "Error when getting a a value in the status dictionary." << e.what() << endl;
+    }
+}
