@@ -61,9 +61,14 @@ void ConsoleClientThread::startrun(Dialog *ui_)
             }
         };
 
-        class thread server_thread([&server](){
+        string local_server_error;
+        class thread server_thread([&server, &local_server_error](){
             //Start server
-            server.start();
+            try {
+                server.start();
+            } catch (exception& e) {
+                local_server_error = e.what();
+            }
         });
 
         // request for a session
@@ -71,14 +76,18 @@ void ConsoleClientThread::startrun(Dialog *ui_)
         ui_->setSession(&session);
 
         if (session.session_id == "failed") {
-            ui_->displayWords("CStory> Fatal error: cannot establish connection with the server.\n");
+            ui_->pprint2("CStory", "Fatal Error: cannot establish connection with the server. Please make sure the server is running and reachable and <b> restart this application</b>.");
+            ui_->disableButtons();
         }
 
         while(true) {
+            if (local_server_error.size() != 0) {
+                ui_->pprint2("CStory", "Local Client Error: " + local_server_error);
+                local_server_error = "";
+                ui_->disableButtons();
+            }
             if (!current_choices.empty()) {
-
                 session.init_button(current_choices);
-
             } else {
                 boost::this_thread::sleep(boost::posix_time::milliseconds(10));
             }
