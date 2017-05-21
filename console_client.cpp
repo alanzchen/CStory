@@ -84,14 +84,14 @@ struct LocalSession {
         auto vec_it = choices_vec.begin();
         pprint("CStory", "What would you say?");
         for (json::iterator it = choices.begin(); it != choices.end(); ++it) {
-            std::cout << count << " : " << it.value() << "\n";
+            std::cout << count << " : " << it.value() << "\n"; // it.value is the text for the buttons
             choices_vec.insert(vec_it, it.key());
             vec_it = choices_vec.begin();
             ++count;
         }
         cout << "Reply: ";
         string choice;
-        getline(cin, choice);
+        getline(cin, choice); // get the reply from user
         bool not_chosen = true;
         int choice_int;
         string choice_id;
@@ -154,7 +154,7 @@ int main() {
                 throw(std::runtime_error("Invalid session_id."));
             }
             if (!j["choice"].get<bool>()) {
-                pprint("Taylor", j["content"].get<string>());
+                pprint("Taylor", j["content"].get<string>()); // show message to the console
             } else { // this is a choice
                 current_choices = j["choices"];
             }
