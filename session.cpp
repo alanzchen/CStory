@@ -61,6 +61,7 @@ int Session::handle_reply(std::string choice) {
     // 2. Get the messages to send.
     // 3. Send the messages.
     scenario_id = choice;
+    cout << "Handling choice for session " << this->session_id << " " << choice << endl;
     (*story_pool)[story_id]->process_session(*this);
     return 0;
 }

@@ -130,7 +130,7 @@ int main() {
                 string next_scenario = j["choice"].get<string>();
                 // Let the session to handle the reply
                 current_session.handle_reply(next_scenario);
-                (*stories)[current_session.getStory_id()]->process_session(current_session);
+//                (*stories)[current_session.getStory_id()]->process_session(current_session);
                 json session_json = current_session.to_json();
                 session_json["message"] = "please wait for us to callback";
                 content = session_json.dump();

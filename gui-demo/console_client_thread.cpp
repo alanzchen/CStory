@@ -42,10 +42,8 @@ void ConsoleClientThread::startrun(Dialog *ui_)
                 } else {                                                 // this is a choice
                     current_choices = j["choices"];
                     cout << current_choices;
-                    cout << "meow" << endl;
                 }
                 session.scenario_id = j["scenario_id"].get<string>();
-
                 *response << "HTTP/1.1 200 OK\r\n"
                           << "Content-Type: application/json\r\n"
                           << "Content-Length: " << content.length() << "\r\n\r\n"

@@ -100,6 +100,7 @@ void Story::read_line(std::string line, std::string snr_id) {
 }
 
 void Story::process_session(Session session, string snr_id, long tm) {
+    cout << "Processing session " << session.getSession_id() << endl;
     bool status = true;
     if (snr_id == "") {
         snr_id = session.getScenario_id();
@@ -136,6 +137,7 @@ void Story::handle_line(std::string line, Session session, long &timestamp) {
         timestamp += delayTime;
         set_up_msg(session, timestamp, line);
     } else if (regex_match(line, continue_re)) {
+        cout << "continue_re" << endl;
         process_session(session, line.substr(2, line.size() - 4), timestamp);
     } else {
         set_up_msg(session, timestamp, line);
