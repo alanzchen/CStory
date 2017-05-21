@@ -3,17 +3,9 @@
 #include <fstream>
 #include <boost/filesystem.hpp>
 #include <boost/thread/thread.hpp>
-#include <ctime>
 #include "json.hpp"
 #include "story.h"
 #include "uuid.h"
-#include "message.h"
-#include "session.h"
-#include <vector>
-#include <algorithm>
-#include <map>
-#include <vector>
-#include <time.h>
 
 using namespace std;
 using json = nlohmann::json;

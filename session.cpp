@@ -3,8 +3,6 @@
 //
 
 #include "session.h"
-#include "json.hpp"
-#include "story.h"
 #include "client_http.hpp"
 
 using namespace std;

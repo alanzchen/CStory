@@ -11,11 +11,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/thread/thread.hpp>
 #include "json.hpp"
-#include <vector>
-#include <algorithm>
-#include <map>
-#include <vector>
-#include <time.h>
 
 using namespace std;
 using json = nlohmann::json;
