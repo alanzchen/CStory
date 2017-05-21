@@ -54,9 +54,8 @@ void Dialog::getSessionStory(/*key for next session*/)   //Here should be argume
 }
 
 void Dialog::welcomeWords(){
-    ui->textEdit->append("CStory > Welcome to CStory Engine Demo Console Client! Now you are using a demo version and will automatically enter the magic story: <Silent Night>");
-    ui->textEdit->append("\nCStory > Which server do you want to connect? Default is localhost:8080\n\nConnecting server...\n");
-    ui->textEdit->append("[Incoming Connection]\n");
+    ui->textEdit->append("<b>CStory ></b> Welcome to CStory Engine Demo Console Client! Now you are using a demo version and will automatically enter the magic story: <Silent Night>");
+    ui->textEdit->append("\n<b>CStory ></b> Connecting to localhost:8080\n");
 }
 
 void Dialog::displayWords(QString str){
@@ -70,7 +69,7 @@ void Dialog::setSession(LocalSession * session_) {
 void Dialog::pprint2(QString people, std::string msg) {
     QString qstr;
     qstr = QString::fromStdString(msg);
-    ui->textEdit->append(people + "> " + qstr);
+    ui->textEdit->append("<b>" + people + " > </b>" + qstr);
 }
 
 void Dialog::on_button1_clicked()

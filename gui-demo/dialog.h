@@ -128,7 +128,13 @@ public:
             j["session_id"] = session_id;
             j["choice"] = choice_id;
             connection = new HttpClient(game_server);
-            (*this).request("/json", j.dump());
+            try {
+                (*this).request("/json", j.dump());
+            } catch (exception &e) {
+                string str(e.what());
+                ui->pprint2("CStory", "Error: " + str);
+            }
+
 
             // disable the buttons here
             ui->disableButtons();

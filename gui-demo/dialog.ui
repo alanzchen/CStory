@@ -43,8 +43,23 @@
        <verstretch>100</verstretch>
       </sizepolicy>
      </property>
+     <property name="acceptDrops">
+      <bool>false</bool>
+     </property>
      <property name="autoFillBackground">
       <bool>false</bool>
+     </property>
+     <property name="undoRedoEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="overwriteMode">
+      <bool>false</bool>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::NoTextInteraction</set>
+     </property>
+     <property name="placeholderText">
+      <string notr="true"/>
      </property>
     </widget>
    </item>
@@ -57,7 +72,7 @@
       <enum>Qt::NoFocus</enum>
      </property>
      <property name="text">
-      <string>The Story Begins</string>
+      <string>[[ Waiting for Connection ]]</string>
      </property>
      <property name="autoDefault">
       <bool>false</bool>
@@ -73,7 +88,7 @@
       <enum>Qt::NoFocus</enum>
      </property>
      <property name="text">
-      <string>Wait to see</string>
+      <string>[[ Waiting for Connection ]]</string>
      </property>
      <property name="autoDefault">
       <bool>false</bool>
