@@ -164,7 +164,9 @@ void Story::handle_line(std::string line, Session session, long &timestamp) {
             string next_snr = i->second;
             int delayTime = getDelayTime(text);
             timestamp +=delayTime;
-
+            int index = line.find('^');
+            session.ackDelay(delayTime/60, line.substr(index+1) );
+            process_session(session,next_snr,timestamp);
         } else {
             int delayTime = getDelayTime(line);
             timestamp += delayTime;
